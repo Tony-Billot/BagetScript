@@ -1,6 +1,6 @@
 # 🥖 BagetScript (.bs)
 
-BagetScript is a simple interpreted programming language written in C.  
+BagetScript is a simple interpreted programming language written in C++.  
 It is designed to make learning programming and algorithms easier through a clean, French-inspired syntax.
 
 The goal is not performance or production use, but education: helping beginners focus on logic rather than complex syntax.
