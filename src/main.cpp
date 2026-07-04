@@ -1,10 +1,62 @@
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <sstream>
 #include <string>
+
+#include "interpreter.hpp"
 #include "lexer.hpp"
+#include "parser.hpp"
 #include "token.hpp"
 
+namespace
+{
+std::string escapeForDisplay(const std::string& value)
+{
+    std::string out;
+
+    for (char c : value)
+    {
+        if (c == '\n')
+            out += "\\n";
+        else if (c == '\t')
+            out += "\\t";
+        else if (c == '\r')
+            out += "\\r";
+        else
+            out += c;
+    }
+
+    return out;
+}
+
+void printTokens(const std::vector<Token>& tokens)
+{
+    std::cout << "\n===== TOKENS =====\n";
+    std::cout << std::left
+              << std::setw(6) << "Ligne"
+              << std::setw(18) << "Type"
+              << "Lexeme"
+              << '\n';
+    std::cout << std::string(50, '-') << '\n';
+
+    for (const auto& token : tokens)
+    {
+        std::string lexeme = escapeForDisplay(token.value);
+
+        if (token.type == TokenType::STRING)
+            lexeme = "\"" + lexeme + "\"";
+
+        std::cout << std::left
+                  << std::setw(6) << token.line
+                  << std::setw(18) << tokenTypeToString(token.type)
+                  << lexeme
+                  << '\n';
+    }
+
+    std::cout << std::endl;
+}
+}
 
 int main(int argc, char** argv) {
 
@@ -36,38 +88,24 @@ int main(int argc, char** argv) {
 
     std::string code = buffer.str();
 
-    std::cout << "===== CONTENU DU FICHIER =====" << std::endl;
-    std::cout << code << std::endl;
+    try
+    {
+        Lexer lexer(code);
+        std::vector<Token> tokens = lexer.tokenize();
 
-    if (debugTokens) {
+        if (debugTokens)
+            printTokens(tokens);
 
-        std::cout << "\n===== TOKENS =====\n";
+        Parser parser(tokens);
+        auto program = parser.parse();
 
-        try
-            {
-                Lexer lexer(code);
-                std::vector<Token> tokens = lexer.tokenize();
-
-                for (const auto& t : tokens)
-                    {
-                        std::cout << "L" << t.line << "\t"
-                                << tokenTypeToString(t.type);
-
-                        if (!t.value.empty())
-                            std::cout << "\t" << t.value;
-
-                        std::cout << "\n";
-                    }
-
-                std::cout << std::endl;
-            }
-            catch (const std::exception& e)
-            {
-                std::cerr << "\nErreur du lexer : " << e.what() << std::endl;
-                return 1;
-            }
-
-        std::cout << std::endl;
+        Interpreter interpreter;
+        interpreter.execute(*program);
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "Erreur: " << e.what() << std::endl;
+        return 1;
     }
 
     return 0;

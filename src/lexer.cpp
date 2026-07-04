@@ -107,13 +107,13 @@ Token Lexer::readIdentifier()
         value += advance();
     }
 
-    if (value == "entier") return makeToken(ENTIER);
-    if (value == "texte") return makeToken(TEXTE);
-    if (value == "booleen") return makeToken(BOOLEEN);
-    if (value == "si") return makeToken(SI);
-    if (value == "sinon") return makeToken(SINON);
-    if (value == "tantque") return makeToken(TANTQUE);
-    if (value == "afficher") return makeToken(AFFICHER);
+    if (value == "entier") return makeToken(ENTIER, value);
+    if (value == "texte") return makeToken(TEXTE, value);
+    if (value == "booleen") return makeToken(BOOLEEN, value);
+    if (value == "si") return makeToken(SI, value);
+    if (value == "sinon") return makeToken(SINON, value);
+    if (value == "tantque") return makeToken(TANTQUE, value);
+    if (value == "afficher") return makeToken(AFFICHER, value);
 
     return makeToken(IDENTIFIER, value);
 }
@@ -170,27 +170,27 @@ std::vector<Token> Lexer::tokenize()
         {
             case '+':
                 advance();
-                tokens.push_back(makeToken(PLUS));
+                tokens.push_back(makeToken(PLUS, "+"));
                 break;
 
             case '-':
                 advance();
-                tokens.push_back(makeToken(MINUS));
+                tokens.push_back(makeToken(MINUS, "-"));
                 break;
 
             case '*':
                 advance();
-                tokens.push_back(makeToken(STAR));
+                tokens.push_back(makeToken(STAR, "*"));
                 break;
 
             case '/':
                 advance();
-                tokens.push_back(makeToken(SLASH));
+                tokens.push_back(makeToken(SLASH, "/"));
                 break;
 
             case '%':
                 advance();
-                tokens.push_back(makeToken(PERCENT));
+                tokens.push_back(makeToken(PERCENT, "%"));
                 break;
 
             case '=':
@@ -199,11 +199,11 @@ std::vector<Token> Lexer::tokenize()
                 if (current() == '=')
                 {
                     advance();
-                    tokens.push_back(makeToken(EQUAL_EQUAL));
+                    tokens.push_back(makeToken(EQUAL_EQUAL, "=="));
                 }
                 else
                 {
-                    tokens.push_back(makeToken(EQUAL));
+                    tokens.push_back(makeToken(EQUAL, "="));
                 }
 
                 break;
@@ -214,11 +214,11 @@ std::vector<Token> Lexer::tokenize()
                 if (current() == '=')
                 {
                     advance();
-                    tokens.push_back(makeToken(NOT_EQUAL));
+                    tokens.push_back(makeToken(NOT_EQUAL, "!="));
                 }
                 else
                 {
-                    tokens.push_back(makeToken(NOT));
+                    tokens.push_back(makeToken(NOT, "!"));
                 }
 
                 break;
@@ -229,11 +229,11 @@ std::vector<Token> Lexer::tokenize()
                 if (current() == '=')
                 {
                     advance();
-                    tokens.push_back(makeToken(GREATER_EQUAL));
+                    tokens.push_back(makeToken(GREATER_EQUAL, ">="));
                 }
                 else
                 {
-                    tokens.push_back(makeToken(GREATER));
+                    tokens.push_back(makeToken(GREATER, ">"));
                 }
 
                 break;
@@ -244,11 +244,11 @@ std::vector<Token> Lexer::tokenize()
                 if (current() == '=')
                 {
                     advance();
-                    tokens.push_back(makeToken(LESS_EQUAL));
+                    tokens.push_back(makeToken(LESS_EQUAL, "<="));
                 }
                 else
                 {
-                    tokens.push_back(makeToken(LESS));
+                    tokens.push_back(makeToken(LESS, "<"));
                 }
 
                 break;
@@ -259,7 +259,7 @@ std::vector<Token> Lexer::tokenize()
                 if (current() == '&')
                 {
                     advance();
-                    tokens.push_back(makeToken(AND));
+                    tokens.push_back(makeToken(AND, "&&"));
                 }
                 else
                 {
@@ -274,7 +274,7 @@ std::vector<Token> Lexer::tokenize()
                 if (current() == '|')
                 {
                     advance();
-                    tokens.push_back(makeToken(OR));
+                    tokens.push_back(makeToken(OR, "||"));
                 }
                 else
                 {
@@ -285,27 +285,27 @@ std::vector<Token> Lexer::tokenize()
 
             case ';':
                 advance();
-                tokens.push_back(makeToken(SEMICOLON));
+                tokens.push_back(makeToken(SEMICOLON, ";"));
                 break;
 
             case '(':
                 advance();
-                tokens.push_back(makeToken(LEFT_PAREN));
+                tokens.push_back(makeToken(LEFT_PAREN, "("));
                 break;
 
             case ')':
                 advance();
-                tokens.push_back(makeToken(RIGHT_PAREN));
+                tokens.push_back(makeToken(RIGHT_PAREN, ")"));
                 break;
 
             case '{':
                 advance();
-                tokens.push_back(makeToken(LEFT_BRACE));
+                tokens.push_back(makeToken(LEFT_BRACE, "{"));
                 break;
 
             case '}':
                 advance();
-                tokens.push_back(makeToken(RIGHT_BRACE));
+                tokens.push_back(makeToken(RIGHT_BRACE, "}"));
                 break;
 
             default:
@@ -317,7 +317,7 @@ std::vector<Token> Lexer::tokenize()
         }
     }
 
-    tokens.push_back(makeToken(END_OF_FILE));
+    tokens.push_back(makeToken(END_OF_FILE, "<eof>"));
 
     return tokens;
 }
