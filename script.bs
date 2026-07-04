@@ -1,0 +1,21 @@
+// Fichier de test BagetScript :
+
+entier a = 5;
+entier b = 3;
+
+afficher(a + b);
+
+si (a > b)
+{
+    afficher("a est plus grand");
+}
+sinon
+{
+    afficher("b est plus grand");
+}
+
+tantque (a < 10)
+{
+    afficher(a);
+    a = a + 1;
+}
