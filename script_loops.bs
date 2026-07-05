@@ -21,3 +21,14 @@ pour (i allant de 3 a 1)
 {
     afficher("desc i = " + i);
 }
+
+afficher("Premier element: " + nombres[0]);
+afficher("Troisieme element: " + nombres[2]);
+
+nombres[1] = 99;
+afficher("Apres modification index 1: " + nombres);
+
+pour (i allant de 0 a 3)
+{
+    afficher("nombres[" + i + "] = " + nombres[i]);
+}

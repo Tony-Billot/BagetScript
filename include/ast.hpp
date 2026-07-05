@@ -131,6 +131,54 @@ public:
     std::vector<std::unique_ptr<Expr>> elements;
 };
 
+class IndexExpr : public Expr
+{
+public:
+    IndexExpr(std::unique_ptr<Expr> object, std::unique_ptr<Expr> index)
+        : object(std::move(object)), index(std::move(index))
+    {
+    }
+
+    std::unique_ptr<Expr> object;
+    std::unique_ptr<Expr> index;
+};
+
+class IndexAssignExpr : public Expr
+{
+public:
+    IndexAssignExpr(
+        std::unique_ptr<Expr> object,
+        std::unique_ptr<Expr> index,
+        std::unique_ptr<Expr> value)
+        : object(std::move(object)),
+          index(std::move(index)),
+          value(std::move(value))
+    {
+    }
+
+    std::unique_ptr<Expr> object;
+    std::unique_ptr<Expr> index;
+    std::unique_ptr<Expr> value;
+};
+
+class MethodCallExpr : public Expr
+{
+public:
+    MethodCallExpr(
+        std::unique_ptr<Expr> object,
+        std::string method,
+        std::vector<std::unique_ptr<Expr>> arguments)
+        : object(std::move(object)),
+          method(std::move(method)),
+          arguments(std::move(arguments))
+    {
+    }
+
+    std::unique_ptr<Expr> object;
+    std::string method;
+    std::vector<std::unique_ptr<Expr>> arguments;
+};
+
 class ExpressionStmt : public Stmt
 {
 public:

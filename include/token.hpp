@@ -50,6 +50,7 @@ enum TokenType
     RIGHT_BRACE,
     LEFT_BRACKET,
     RIGHT_BRACKET,
+    DOT,
     COMMA,
     SEMICOLON,
 
@@ -113,6 +114,7 @@ inline std::string tokenTypeToString(TokenType t)
         case RIGHT_BRACE: return "RIGHT_BRACE";
         case LEFT_BRACKET: return "LEFT_BRACKET";
         case RIGHT_BRACKET: return "RIGHT_BRACKET";
+        case DOT: return "DOT";
         case COMMA: return "COMMA";
         case SEMICOLON: return "SEMICOLON";
 

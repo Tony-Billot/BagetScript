@@ -325,6 +325,11 @@ std::vector<Token> Lexer::tokenize()
                 tokens.push_back(makeToken(RIGHT_BRACKET, "]"));
                 break;
 
+            case '.':
+                advance();
+                tokens.push_back(makeToken(DOT, "."));
+                break;
+
             case ',':
                 advance();
                 tokens.push_back(makeToken(COMMA, ","));

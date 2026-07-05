@@ -230,11 +230,22 @@ std::unique_ptr<Expr> Parser::expression()
         auto value = expression();
         auto* variableExpr = dynamic_cast<VariableExpr*>(expr.get());
 
-        if (!variableExpr)
-            throw std::runtime_error("Affectation invalide.");
+        if (variableExpr)
+        {
+            std::string name = variableExpr->name;
+            return std::make_unique<AssignExpr>(name, std::move(value));
+        }
 
-        std::string name = variableExpr->name;
-        return std::make_unique<AssignExpr>(name, std::move(value));
+        auto* indexExpr = dynamic_cast<IndexExpr*>(expr.get());
+
+        if (indexExpr)
+        {
+            auto object = std::move(indexExpr->object);
+            auto index = std::move(indexExpr->index);
+            return std::make_unique<IndexAssignExpr>(std::move(object), std::move(index), std::move(value));
+        }
+
+        throw std::runtime_error("Affectation invalide.");
     }
 
     return expr;
@@ -359,11 +370,35 @@ std::unique_ptr<Expr> Parser::primary()
         throw std::runtime_error("Expression invalide.");
     }
 
-    while (match(TokenType::LEFT_PAREN))
+    while (true)
     {
-        auto arguments = parseArguments();
-        consume(TokenType::RIGHT_PAREN, "')' attendu apres les arguments.");
-        expr = std::make_unique<CallExpr>(std::move(expr), std::move(arguments));
+        if (match(TokenType::LEFT_PAREN))
+        {
+            auto arguments = parseArguments();
+            consume(TokenType::RIGHT_PAREN, "')' attendu apres les arguments.");
+            expr = std::make_unique<CallExpr>(std::move(expr), std::move(arguments));
+            continue;
+        }
+
+        if (match(TokenType::LEFT_BRACKET))
+        {
+            auto index = expression();
+            consume(TokenType::RIGHT_BRACKET, "']' attendu apres l'index.");
+            expr = std::make_unique<IndexExpr>(std::move(expr), std::move(index));
+            continue;
+        }
+
+        if (match(TokenType::DOT))
+        {
+            Token methodName = consume(TokenType::IDENTIFIER, "Nom de methode attendu apres '.'.");
+            consume(TokenType::LEFT_PAREN, "'(' attendu apres le nom de methode.");
+            auto arguments = parseArguments();
+            consume(TokenType::RIGHT_PAREN, "')' attendu apres les arguments de methode.");
+            expr = std::make_unique<MethodCallExpr>(std::move(expr), methodName.value, std::move(arguments));
+            continue;
+        }
+
+        break;
     }
 
     return expr;

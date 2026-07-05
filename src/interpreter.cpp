@@ -14,6 +14,21 @@ double asNumber(const Value& value)
 
 	throw std::runtime_error("Valeur numerique attendue.");
 }
+
+size_t asIndex(const Value& value)
+{
+	double raw = asNumber(value);
+
+	if (raw < 0.0)
+		throw std::runtime_error("Index de liste negatif.");
+
+	double integral = std::floor(raw);
+
+	if (integral != raw)
+		throw std::runtime_error("L'index de liste doit etre un entier.");
+
+	return static_cast<size_t>(integral);
+}
 }
 
 void Interpreter::execute(const Program& program)
@@ -118,7 +133,12 @@ void Interpreter::executeStmt(const Stmt& stmt)
 
 	if (const auto* forRangeStmt = dynamic_cast<const ForRangeStmt*>(&stmt))
 	{
-		auto previousVariables = variables;
+		auto previousIt = variables.find(forRangeStmt->variableName);
+		bool hadPrevious = previousIt != variables.end();
+		Value previousValue;
+
+		if (hadPrevious)
+			previousValue = previousIt->second;
 
 		double start = asNumber(evaluate(*forRangeStmt->start));
 		double end = asNumber(evaluate(*forRangeStmt->end));
@@ -130,7 +150,11 @@ void Interpreter::executeStmt(const Stmt& stmt)
 			executeStmt(*forRangeStmt->body);
 		}
 
-		variables = std::move(previousVariables);
+		if (hadPrevious)
+			variables[forRangeStmt->variableName] = previousValue;
+		else
+			variables.erase(forRangeStmt->variableName);
+
 		return;
 	}
 
@@ -142,7 +166,12 @@ void Interpreter::executeStmt(const Stmt& stmt)
 		if (!list)
 			throw std::runtime_error("La boucle 'pour ... dans ...' attend une liste.");
 
-		auto previousVariables = variables;
+		auto previousIt = variables.find(forEachStmt->variableName);
+		bool hadPrevious = previousIt != variables.end();
+		Value previousValue;
+
+		if (hadPrevious)
+			previousValue = previousIt->second;
 
 		for (const auto& item : *list)
 		{
@@ -150,7 +179,11 @@ void Interpreter::executeStmt(const Stmt& stmt)
 			executeStmt(*forEachStmt->body);
 		}
 
-		variables = std::move(previousVariables);
+		if (hadPrevious)
+			variables[forEachStmt->variableName] = previousValue;
+		else
+			variables.erase(forEachStmt->variableName);
+
 		return;
 	}
 
@@ -190,6 +223,40 @@ Value Interpreter::evaluate(const Expr& expr)
 		return value;
 	}
 
+	if (const auto* indexAssign = dynamic_cast<const IndexAssignExpr*>(&expr))
+	{
+		const auto* variableObject = dynamic_cast<const VariableExpr*>(indexAssign->object.get());
+
+		if (!variableObject)
+			throw std::runtime_error("Affectation d'index invalide: la cible doit etre une variable liste.");
+
+		auto variableIt = variables.find(variableObject->name);
+
+		if (variableIt == variables.end())
+			throw std::runtime_error("Variable inconnue: " + variableObject->name);
+
+		auto* list = std::get_if<Value::List>(&variableIt->second.data);
+
+		if (!list)
+			throw std::runtime_error("La cible d'indexation n'est pas une liste: " + variableObject->name);
+
+		size_t index = asIndex(evaluate(*indexAssign->index));
+
+		if (index >= list->size())
+		{
+			throw std::runtime_error(
+				"Index hors limites: " +
+				std::to_string(index) +
+				" pour une liste de taille " +
+				std::to_string(list->size()) +
+				".");
+		}
+
+		Value value = evaluate(*indexAssign->value);
+		(*list)[index] = value;
+		return value;
+	}
+
 	if (const auto* grouping = dynamic_cast<const GroupingExpr*>(&expr))
 		return evaluate(*grouping->expr);
 
@@ -202,6 +269,29 @@ Value Interpreter::evaluate(const Expr& expr)
 			list.push_back(evaluate(*elementExpr));
 
 		return Value{std::move(list)};
+	}
+
+	if (const auto* indexExpr = dynamic_cast<const IndexExpr*>(&expr))
+	{
+		Value objectValue = evaluate(*indexExpr->object);
+		auto* list = std::get_if<Value::List>(&objectValue.data);
+
+		if (!list)
+			throw std::runtime_error("Indexation invalide: la valeur n'est pas une liste.");
+
+		size_t index = asIndex(evaluate(*indexExpr->index));
+
+		if (index >= list->size())
+		{
+			throw std::runtime_error(
+				"Index hors limites: " +
+				std::to_string(index) +
+				" pour une liste de taille " +
+				std::to_string(list->size()) +
+				".");
+		}
+
+		return (*list)[index];
 	}
 
 	if (const auto* callExpr = dynamic_cast<const CallExpr*>(&expr))
@@ -223,6 +313,80 @@ Value Interpreter::evaluate(const Expr& expr)
 			arguments.push_back(evaluate(*argumentExpr));
 
 		return callFunction(*functionIt->second, arguments);
+	}
+
+	if (const auto* methodCall = dynamic_cast<const MethodCallExpr*>(&expr))
+	{
+		std::vector<Value> arguments;
+		arguments.reserve(methodCall->arguments.size());
+
+		for (const auto& argumentExpr : methodCall->arguments)
+			arguments.push_back(evaluate(*argumentExpr));
+
+		if (methodCall->method == "taille")
+		{
+			if (!arguments.empty())
+				throw std::runtime_error("La methode 'taille' n'accepte aucun argument.");
+
+			Value objectValue = evaluate(*methodCall->object);
+			auto* list = std::get_if<Value::List>(&objectValue.data);
+
+			if (!list)
+				throw std::runtime_error("La methode 'taille' s'applique uniquement aux listes.");
+
+			return Value{static_cast<double>(list->size())};
+		}
+
+		const auto* variableObject = dynamic_cast<const VariableExpr*>(methodCall->object.get());
+
+		if (!variableObject)
+		{
+			throw std::runtime_error(
+				"Les methodes mutables de liste s'appliquent a une variable liste (ex: noms.ajouter(...)).");
+		}
+
+		auto variableIt = variables.find(variableObject->name);
+
+		if (variableIt == variables.end())
+			throw std::runtime_error("Variable inconnue: " + variableObject->name);
+
+		auto* list = std::get_if<Value::List>(&variableIt->second.data);
+
+		if (!list)
+			throw std::runtime_error("La cible de methode n'est pas une liste: " + variableObject->name);
+
+		if (methodCall->method == "ajouter")
+		{
+			if (arguments.size() != 1)
+				throw std::runtime_error("La methode 'ajouter' attend exactement 1 argument.");
+
+			list->push_back(arguments[0]);
+			return Value{static_cast<double>(list->size())};
+		}
+
+		if (methodCall->method == "retirer")
+		{
+			if (arguments.size() != 1)
+				throw std::runtime_error("La methode 'retirer' attend exactement 1 argument (index).");
+
+			size_t index = asIndex(arguments[0]);
+
+			if (index >= list->size())
+			{
+				throw std::runtime_error(
+					"Index hors limites dans retirer: " +
+					std::to_string(index) +
+					" pour une liste de taille " +
+					std::to_string(list->size()) +
+					".");
+			}
+
+			Value removed = (*list)[index];
+			list->erase(list->begin() + static_cast<Value::List::difference_type>(index));
+			return removed;
+		}
+
+		throw std::runtime_error("Methode de liste inconnue: " + methodCall->method);
 	}
 
 	if (const auto* unary = dynamic_cast<const UnaryExpr*>(&expr))
