@@ -1,21 +1,87 @@
-// Fichier de test BagetScript :
+texte titre = "===== BAGETSCRIPT DEMO =====";
+afficher(titre);
 
-entier a = 5;
-entier b = 3;
+entier i = 1;
+entier somme = 0;
+entier pairs = 0;
+entier impairs = 0;
 
-afficher(a + b);
-
-si (a > b)
+tantque (i <= 20)
 {
-    afficher("a est plus grand");
+    afficher("----------------");
+    afficher("Valeur : " + i);
+
+    somme = somme + i;
+
+    si ((i % 2) == 0)
+    {
+        afficher("Pair");
+
+        pairs = pairs + 1;
+
+        si (i >= 10)
+        {
+            afficher("Pair et >= 10");
+        }
+        sinon
+        {
+            afficher("Pair mais < 10");
+        }
+    }
+    sinon
+    {
+        afficher("Impair");
+        impairs = impairs + 1;
+    }
+
+    booleen multiple3 = ((i % 3) == 0);
+    booleen multiple5 = ((i % 5) == 0);
+
+    si(multiple3 && multiple5)
+    {
+        afficher("Multiple de 3 et 5");
+    }
+    sinon
+    {
+        si (multiple3)
+        {
+            afficher("Multiple de 3");
+        }
+        sinon
+        {
+            si (multiple5)
+            {
+                afficher("Multiple de 5");
+            }
+        }
+    }
+
+    si (!(i == 13))
+    {
+        afficher("Ce n'est pas 13");
+    }
+    sinon
+    {
+        afficher("Nombre porte-bonheur !");
+    }
+
+    i = i + 1;
+}
+
+afficher("=================");
+afficher("FIN");
+
+afficher("Somme = " + somme);
+afficher("Pairs = " + pairs);
+afficher("Impairs = " + impairs);
+
+booleen verification = (pairs + impairs) == 20;
+
+si (verification)
+{
+    afficher("Verification OK");
 }
 sinon
 {
-    afficher("b est plus grand");
-}
-
-tantque (a < 10)
-{
-    afficher(a);
-    a = a + 1;
+    afficher("Erreur de calcul");
 }
