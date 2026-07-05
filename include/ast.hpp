@@ -34,7 +34,8 @@ public:
 
 struct Value
 {
-    std::variant<double, std::string, bool> data;
+    using List = std::vector<Value>;
+    std::variant<double, std::string, bool, List> data;
 };
 
 class LiteralExpr : public Expr
@@ -105,6 +106,29 @@ public:
     }
 
     std::unique_ptr<Expr> expr;
+};
+
+class CallExpr : public Expr
+{
+public:
+    CallExpr(std::unique_ptr<Expr> callee, std::vector<std::unique_ptr<Expr>> arguments)
+        : callee(std::move(callee)), arguments(std::move(arguments))
+    {
+    }
+
+    std::unique_ptr<Expr> callee;
+    std::vector<std::unique_ptr<Expr>> arguments;
+};
+
+class ListExpr : public Expr
+{
+public:
+    explicit ListExpr(std::vector<std::unique_ptr<Expr>> elements)
+        : elements(std::move(elements))
+    {
+    }
+
+    std::vector<std::unique_ptr<Expr>> elements;
 };
 
 class ExpressionStmt : public Stmt
@@ -181,4 +205,61 @@ public:
 
     std::unique_ptr<Expr> condition;
     std::unique_ptr<Stmt> body;
+};
+
+class ForRangeStmt : public Stmt
+{
+public:
+    ForRangeStmt(
+        std::string variableName,
+        std::unique_ptr<Expr> start,
+        std::unique_ptr<Expr> end,
+        std::unique_ptr<Stmt> body)
+        : variableName(std::move(variableName)),
+          start(std::move(start)),
+          end(std::move(end)),
+          body(std::move(body))
+    {
+    }
+
+    std::string variableName;
+    std::unique_ptr<Expr> start;
+    std::unique_ptr<Expr> end;
+    std::unique_ptr<Stmt> body;
+};
+
+class ForEachStmt : public Stmt
+{
+public:
+    ForEachStmt(
+        std::string variableName,
+        std::unique_ptr<Expr> iterable,
+        std::unique_ptr<Stmt> body)
+        : variableName(std::move(variableName)),
+          iterable(std::move(iterable)),
+          body(std::move(body))
+    {
+    }
+
+    std::string variableName;
+    std::unique_ptr<Expr> iterable;
+    std::unique_ptr<Stmt> body;
+};
+
+class FunctionStmt : public Stmt
+{
+public:
+    FunctionStmt(
+        std::string name,
+        std::vector<std::string> parameters,
+        std::vector<std::unique_ptr<Stmt>> body)
+        : name(std::move(name)),
+          parameters(std::move(parameters)),
+          body(std::move(body))
+    {
+    }
+
+    std::string name;
+    std::vector<std::string> parameters;
+    std::vector<std::unique_ptr<Stmt>> body;
 };

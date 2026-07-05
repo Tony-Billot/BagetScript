@@ -11,10 +11,17 @@ enum TokenType
     ENTIER,
     TEXTE,
     BOOLEEN,
+    LISTE,
     SI,
     SINON,
     TANTQUE,
+    POUR,
+    ALLANT,
+    DE,
+    A,
+    DANS,
     AFFICHER,
+    FONCTION,
 
     PLUS,
     MINUS,
@@ -41,6 +48,9 @@ enum TokenType
     RIGHT_PAREN,
     LEFT_BRACE,
     RIGHT_BRACE,
+    LEFT_BRACKET,
+    RIGHT_BRACKET,
+    COMMA,
     SEMICOLON,
 
     END_OF_FILE
@@ -64,10 +74,17 @@ inline std::string tokenTypeToString(TokenType t)
         case ENTIER: return "ENTIER";
         case TEXTE: return "TEXTE";
         case BOOLEEN: return "BOOLEEN";
+        case LISTE: return "LISTE";
         case SI: return "SI";
         case SINON: return "SINON";
         case TANTQUE: return "TANTQUE";
+        case POUR: return "POUR";
+        case ALLANT: return "ALLANT";
+        case DE: return "DE";
+        case A: return "A";
+        case DANS: return "DANS";
         case AFFICHER: return "AFFICHER";
+        case FONCTION: return "FONCTION";
 
         case PLUS: return "PLUS";
         case MINUS: return "MINUS";
@@ -94,6 +111,9 @@ inline std::string tokenTypeToString(TokenType t)
         case RIGHT_PAREN: return "RIGHT_PAREN";
         case LEFT_BRACE: return "LEFT_BRACE";
         case RIGHT_BRACE: return "RIGHT_BRACE";
+        case LEFT_BRACKET: return "LEFT_BRACKET";
+        case RIGHT_BRACKET: return "RIGHT_BRACKET";
+        case COMMA: return "COMMA";
         case SEMICOLON: return "SEMICOLON";
 
         case END_OF_FILE: return "EOF";

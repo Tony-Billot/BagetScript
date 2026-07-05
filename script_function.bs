@@ -1,0 +1,25 @@
+fonction saluer(nom)
+{
+    afficher("Salut " + nom);
+}
+
+fonction additionDemo(a, b)
+{
+    afficher("Somme: " + (a + b));
+}
+
+fonction compterJusqua(n)
+{
+    entier i = 1;
+
+    tantque (i <= n)
+    {
+        afficher("i = " + i);
+        i = i + 1;
+    }
+}
+
+afficher("=== TEST FONCTIONS ===");
+saluer("Baget");
+additionDemo(4, 5);
+compterJusqua(3);

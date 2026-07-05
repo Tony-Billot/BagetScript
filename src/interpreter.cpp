@@ -18,8 +18,21 @@ double asNumber(const Value& value)
 
 void Interpreter::execute(const Program& program)
 {
+	functions.clear();
+
 	for (const auto& statement : program.statements)
+	{
+		if (const auto* functionStmt = dynamic_cast<const FunctionStmt*>(statement.get()))
+			functions[functionStmt->name] = functionStmt;
+	}
+
+	for (const auto& statement : program.statements)
+	{
+		if (dynamic_cast<const FunctionStmt*>(statement.get()))
+			continue;
+
 		executeStmt(*statement);
+	}
 }
 
 void Interpreter::executeStmt(const Stmt& stmt)
@@ -47,6 +60,8 @@ void Interpreter::executeStmt(const Stmt& stmt)
 			value.data = 0.0;
 		else if (varDecl->typeToken == TokenType::TEXTE)
 			value.data = std::string{};
+		else if (varDecl->typeToken == TokenType::LISTE)
+			value.data = Value::List{};
 		else
 			value.data = false;
 
@@ -59,6 +74,11 @@ void Interpreter::executeStmt(const Stmt& stmt)
 		{
 			if (!std::holds_alternative<std::string>(value.data))
 				throw std::runtime_error("Le type 'texte' attend une chaine.");
+		}
+		else if (varDecl->typeToken == TokenType::LISTE)
+		{
+			if (!std::holds_alternative<Value::List>(value.data))
+				throw std::runtime_error("Le type 'liste' attend une liste.");
 		}
 		else if (varDecl->typeToken == TokenType::BOOLEEN)
 		{
@@ -96,6 +116,50 @@ void Interpreter::executeStmt(const Stmt& stmt)
 		return;
 	}
 
+	if (const auto* forRangeStmt = dynamic_cast<const ForRangeStmt*>(&stmt))
+	{
+		auto previousVariables = variables;
+
+		double start = asNumber(evaluate(*forRangeStmt->start));
+		double end = asNumber(evaluate(*forRangeStmt->end));
+		double step = start <= end ? 1.0 : -1.0;
+
+		for (double i = start; (step > 0.0) ? (i <= end) : (i >= end); i += step)
+		{
+			variables[forRangeStmt->variableName] = Value{i};
+			executeStmt(*forRangeStmt->body);
+		}
+
+		variables = std::move(previousVariables);
+		return;
+	}
+
+	if (const auto* forEachStmt = dynamic_cast<const ForEachStmt*>(&stmt))
+	{
+		Value iterableValue = evaluate(*forEachStmt->iterable);
+		auto* list = std::get_if<Value::List>(&iterableValue.data);
+
+		if (!list)
+			throw std::runtime_error("La boucle 'pour ... dans ...' attend une liste.");
+
+		auto previousVariables = variables;
+
+		for (const auto& item : *list)
+		{
+			variables[forEachStmt->variableName] = item;
+			executeStmt(*forEachStmt->body);
+		}
+
+		variables = std::move(previousVariables);
+		return;
+	}
+
+	if (const auto* functionStmt = dynamic_cast<const FunctionStmt*>(&stmt))
+	{
+		functions[functionStmt->name] = functionStmt;
+		return;
+	}
+
 	throw std::runtime_error("Type de statement inconnu.");
 }
 
@@ -128,6 +192,38 @@ Value Interpreter::evaluate(const Expr& expr)
 
 	if (const auto* grouping = dynamic_cast<const GroupingExpr*>(&expr))
 		return evaluate(*grouping->expr);
+
+	if (const auto* listExpr = dynamic_cast<const ListExpr*>(&expr))
+	{
+		Value::List list;
+		list.reserve(listExpr->elements.size());
+
+		for (const auto& elementExpr : listExpr->elements)
+			list.push_back(evaluate(*elementExpr));
+
+		return Value{std::move(list)};
+	}
+
+	if (const auto* callExpr = dynamic_cast<const CallExpr*>(&expr))
+	{
+		const auto* calleeVariable = dynamic_cast<const VariableExpr*>(callExpr->callee.get());
+
+		if (!calleeVariable)
+			throw std::runtime_error("Appel de fonction invalide.");
+
+		auto functionIt = functions.find(calleeVariable->name);
+
+		if (functionIt == functions.end())
+			throw std::runtime_error("Fonction inconnue: " + calleeVariable->name);
+
+		std::vector<Value> arguments;
+		arguments.reserve(callExpr->arguments.size());
+
+		for (const auto& argumentExpr : callExpr->arguments)
+			arguments.push_back(evaluate(*argumentExpr));
+
+		return callFunction(*functionIt->second, arguments);
+	}
 
 	if (const auto* unary = dynamic_cast<const UnaryExpr*>(&expr))
 	{
@@ -213,6 +309,35 @@ Value Interpreter::evaluate(const Expr& expr)
 	throw std::runtime_error("Type d'expression inconnu.");
 }
 
+Value Interpreter::callFunction(const FunctionStmt& function, const std::vector<Value>& arguments)
+{
+	if (arguments.size() != function.parameters.size())
+	{
+		throw std::runtime_error(
+			"Nombre d'arguments invalide pour '" +
+			function.name +
+			"' (attendu: " +
+			std::to_string(function.parameters.size()) +
+			", recu: " +
+			std::to_string(arguments.size()) +
+			").");
+	}
+
+	auto previousVariables = variables;
+
+	for (size_t i = 0; i < function.parameters.size(); ++i)
+		variables[function.parameters[i]] = arguments[i];
+
+	for (const auto& stmt : function.body)
+		executeStmt(*stmt);
+
+	variables = std::move(previousVariables);
+
+	Value result;
+	result.data = false;
+	return result;
+}
+
 bool Interpreter::isTruthy(const Value& value)
 {
 	if (auto booleanValue = std::get_if<bool>(&value.data))
@@ -223,6 +348,9 @@ bool Interpreter::isTruthy(const Value& value)
 
 	if (auto text = std::get_if<std::string>(&value.data))
 		return !text->empty();
+
+	if (auto list = std::get_if<Value::List>(&value.data))
+		return !list->empty();
 
 	return false;
 }
@@ -242,6 +370,23 @@ std::string Interpreter::valueToString(const Value& value)
 	if (auto text = std::get_if<std::string>(&value.data))
 		return *text;
 
+	if (auto list = std::get_if<Value::List>(&value.data))
+	{
+		std::ostringstream out;
+		out << "[";
+
+		for (size_t i = 0; i < list->size(); ++i)
+		{
+			if (i > 0)
+				out << ", ";
+
+			out << valueToString((*list)[i]);
+		}
+
+		out << "]";
+		return out.str();
+	}
+
 	return "";
 }
 
@@ -258,6 +403,22 @@ bool Interpreter::valuesEqual(const Value& left, const Value& right)
 
 	if (auto leftBool = std::get_if<bool>(&left.data))
 		return *leftBool == std::get<bool>(right.data);
+
+	if (auto leftList = std::get_if<Value::List>(&left.data))
+	{
+		const auto& rightList = std::get<Value::List>(right.data);
+
+		if (leftList->size() != rightList.size())
+			return false;
+
+		for (size_t i = 0; i < leftList->size(); ++i)
+		{
+			if (!valuesEqual((*leftList)[i], rightList[i]))
+				return false;
+		}
+
+		return true;
+	}
 
 	return false;
 }

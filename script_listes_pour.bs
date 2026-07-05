@@ -1,0 +1,23 @@
+afficher("=== TEST LISTES + BOUCLES POUR ===");
+
+liste nombres = [10, 20, 30, 40];
+afficher("Liste initiale: " + nombres);
+
+entier n = 5;
+afficher("Boucle pour (i allant de 1 a n):");
+pour (i allant de 1 a n)
+{
+    afficher("i = " + i);
+}
+
+afficher("Boucle pour (x dans nombres):");
+pour (x dans nombres)
+{
+    afficher("x = " + x);
+}
+
+afficher("Boucle descendante (i allant de 3 a 1):");
+pour (i allant de 3 a 1)
+{
+    afficher("desc i = " + i);
+}

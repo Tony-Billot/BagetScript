@@ -61,18 +61,20 @@ std::unique_ptr<Program> Parser::parse()
     auto program = std::make_unique<Program>();
 
     while (!isAtEnd())
-    {
-        std::unique_ptr<Stmt> stmt;
-
-        if (match(TokenType::ENTIER) || match(TokenType::TEXTE) || match(TokenType::BOOLEEN))
-            stmt = variableDeclaration();
-        else
-            stmt = statement();
-
-        program->statements.push_back(std::move(stmt));
-    }
+        program->statements.push_back(declaration());
 
     return program;
+}
+
+std::unique_ptr<Stmt> Parser::declaration()
+{
+    if (match(TokenType::FONCTION))
+        return functionDeclaration();
+
+    if (match(TokenType::ENTIER) || match(TokenType::TEXTE) || match(TokenType::BOOLEEN) || match(TokenType::LISTE))
+        return variableDeclaration();
+
+    return statement();
 }
 
 std::unique_ptr<Stmt> Parser::statement()
@@ -83,6 +85,9 @@ std::unique_ptr<Stmt> Parser::statement()
     if (match(TokenType::TANTQUE))
         return whileStatement();
 
+    if (match(TokenType::POUR))
+        return forStatement();
+
     if (match(TokenType::AFFICHER))
         return printStatement();
 
@@ -90,6 +95,36 @@ std::unique_ptr<Stmt> Parser::statement()
         return blockStatement();
 
     return expressionStatement();
+}
+
+std::unique_ptr<Stmt> Parser::functionDeclaration()
+{
+    Token name = consume(TokenType::IDENTIFIER, "Nom de fonction attendu.");
+    consume(TokenType::LEFT_PAREN, "'(' attendu apres le nom de fonction.");
+
+    std::vector<std::string> parameters;
+
+    if (!check(TokenType::RIGHT_PAREN))
+    {
+        do
+        {
+            Token param = consume(TokenType::IDENTIFIER, "Nom de parametre attendu.");
+            parameters.push_back(param.value);
+        }
+        while (match(TokenType::COMMA));
+    }
+
+    consume(TokenType::RIGHT_PAREN, "')' attendu apres les parametres.");
+    consume(TokenType::LEFT_BRACE, "'{' attendu pour le corps de la fonction.");
+
+    auto bodyStmt = blockStatement();
+    auto* block = dynamic_cast<BlockStmt*>(bodyStmt.get());
+
+    if (!block)
+        throw std::runtime_error("Bloc de fonction invalide.");
+
+    std::vector<std::unique_ptr<Stmt>> body = std::move(block->statements);
+    return std::make_unique<FunctionStmt>(name.value, std::move(parameters), std::move(body));
 }
 
 std::unique_ptr<Stmt> Parser::variableDeclaration()
@@ -146,17 +181,41 @@ std::unique_ptr<Stmt> Parser::whileStatement()
     return std::make_unique<WhileStmt>(std::move(condition), std::move(body));
 }
 
+std::unique_ptr<Stmt> Parser::forStatement()
+{
+    consume(TokenType::LEFT_PAREN, "'(' attendu apres 'pour'.");
+    Token variable = consume(TokenType::IDENTIFIER, "Variable attendue dans la boucle pour.");
+
+    if (match(TokenType::ALLANT))
+    {
+        consume(TokenType::DE, "'de' attendu apres 'allant'.");
+        auto start = expression();
+        consume(TokenType::A, "'a' attendu dans la boucle 'allant de ... a ...'.");
+        auto end = expression();
+        consume(TokenType::RIGHT_PAREN, "')' attendu apres la boucle pour.");
+
+        auto body = statement();
+        return std::make_unique<ForRangeStmt>(variable.value, std::move(start), std::move(end), std::move(body));
+    }
+
+    if (match(TokenType::DANS))
+    {
+        auto iterable = expression();
+        consume(TokenType::RIGHT_PAREN, "')' attendu apres la boucle pour.");
+
+        auto body = statement();
+        return std::make_unique<ForEachStmt>(variable.value, std::move(iterable), std::move(body));
+    }
+
+    throw std::runtime_error("Syntaxe invalide pour 'pour'. Utilisez 'allant de ... a ...' ou 'dans'.");
+}
+
 std::unique_ptr<Stmt> Parser::blockStatement()
 {
     std::vector<std::unique_ptr<Stmt>> statements;
 
     while (!check(TokenType::RIGHT_BRACE) && !isAtEnd())
-    {
-        if (match(TokenType::ENTIER) || match(TokenType::TEXTE) || match(TokenType::BOOLEEN))
-            statements.push_back(variableDeclaration());
-        else
-            statements.push_back(statement());
-    }
+        statements.push_back(declaration());
 
     consume(TokenType::RIGHT_BRACE, "'}' attendu pour fermer le bloc.");
     return std::make_unique<BlockStmt>(std::move(statements));
@@ -231,38 +290,81 @@ std::unique_ptr<Expr> Parser::factor()
     return expr;
 }
 
+std::vector<std::unique_ptr<Expr>> Parser::parseArguments()
+{
+    std::vector<std::unique_ptr<Expr>> arguments;
+
+    if (check(TokenType::RIGHT_PAREN))
+        return arguments;
+
+    do
+    {
+        arguments.push_back(expression());
+    }
+    while (match(TokenType::COMMA));
+
+    return arguments;
+}
+
 std::unique_ptr<Expr> Parser::primary()
 {
+    std::unique_ptr<Expr> expr;
+
     if (match(TokenType::NUMBER))
     {
         Value value;
         value.data = std::strtod(previous().value.c_str(), nullptr);
-        return std::make_unique<LiteralExpr>(std::move(value));
+        expr = std::make_unique<LiteralExpr>(std::move(value));
     }
-
-    if (match(TokenType::STRING))
+    else if (match(TokenType::STRING))
     {
         Value value;
         value.data = previous().value;
-        return std::make_unique<LiteralExpr>(std::move(value));
+        expr = std::make_unique<LiteralExpr>(std::move(value));
     }
-
-    if (match(TokenType::IDENTIFIER))
-        return std::make_unique<VariableExpr>(previous().value);
-
-    if (match(TokenType::LEFT_PAREN))
+    else if (match(TokenType::IDENTIFIER))
     {
-        auto expr = expression();
-        consume(TokenType::RIGHT_PAREN, "')' attendu apres une expression.");
-        return std::make_unique<GroupingExpr>(std::move(expr));
+        expr = std::make_unique<VariableExpr>(previous().value);
     }
+    else if (match(TokenType::LEFT_PAREN))
+    {
+        auto innerExpr = expression();
+        consume(TokenType::RIGHT_PAREN, "')' attendu apres une expression.");
+        expr = std::make_unique<GroupingExpr>(std::move(innerExpr));
+    }
+    else if (match(TokenType::LEFT_BRACKET))
+    {
+        std::vector<std::unique_ptr<Expr>> elements;
 
-    if (match(TokenType::NOT) || match(TokenType::MINUS))
+        if (!check(TokenType::RIGHT_BRACKET))
+        {
+            do
+            {
+                elements.push_back(expression());
+            }
+            while (match(TokenType::COMMA));
+        }
+
+        consume(TokenType::RIGHT_BRACKET, "']' attendu apres les elements de liste.");
+        expr = std::make_unique<ListExpr>(std::move(elements));
+    }
+    else if (match(TokenType::NOT) || match(TokenType::MINUS))
     {
         TokenType op = previous().type;
         auto right = primary();
-        return std::make_unique<UnaryExpr>(op, std::move(right));
+        expr = std::make_unique<UnaryExpr>(op, std::move(right));
+    }
+    else
+    {
+        throw std::runtime_error("Expression invalide.");
     }
 
-    throw std::runtime_error("Expression invalide.");
+    while (match(TokenType::LEFT_PAREN))
+    {
+        auto arguments = parseArguments();
+        consume(TokenType::RIGHT_PAREN, "')' attendu apres les arguments.");
+        expr = std::make_unique<CallExpr>(std::move(expr), std::move(arguments));
+    }
+
+    return expr;
 }

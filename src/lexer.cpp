@@ -110,10 +110,17 @@ Token Lexer::readIdentifier()
     if (value == "entier") return makeToken(ENTIER, value);
     if (value == "texte") return makeToken(TEXTE, value);
     if (value == "booleen") return makeToken(BOOLEEN, value);
+    if (value == "liste") return makeToken(LISTE, value);
     if (value == "si") return makeToken(SI, value);
     if (value == "sinon") return makeToken(SINON, value);
     if (value == "tantque") return makeToken(TANTQUE, value);
+    if (value == "pour") return makeToken(POUR, value);
+    if (value == "allant") return makeToken(ALLANT, value);
+    if (value == "de") return makeToken(DE, value);
+    if (value == "a") return makeToken(A, value);
+    if (value == "dans") return makeToken(DANS, value);
     if (value == "afficher") return makeToken(AFFICHER, value);
+    if (value == "fonction") return makeToken(FONCTION, value);
 
     return makeToken(IDENTIFIER, value);
 }
@@ -306,6 +313,21 @@ std::vector<Token> Lexer::tokenize()
             case '}':
                 advance();
                 tokens.push_back(makeToken(RIGHT_BRACE, "}"));
+                break;
+
+            case '[':
+                advance();
+                tokens.push_back(makeToken(LEFT_BRACKET, "["));
+                break;
+
+            case ']':
+                advance();
+                tokens.push_back(makeToken(RIGHT_BRACKET, "]"));
+                break;
+
+            case ',':
+                advance();
+                tokens.push_back(makeToken(COMMA, ","));
                 break;
 
             default:
