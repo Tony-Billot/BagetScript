@@ -25,7 +25,7 @@ pour (x dans fruits)
     afficher("- " + x);
 }
 
-entier dernier = fruits.taille() - 1;
+nombre dernier = fruits.taille() - 1;
 afficher("Iteration avec index:");
 pour (i allant de 0 a dernier)
 {

@@ -71,7 +71,7 @@ void Interpreter::executeStmt(const Stmt& stmt)
 
 		if (varDecl->initializer)
 			value = evaluate(*varDecl->initializer);
-		else if (varDecl->typeToken == TokenType::ENTIER)
+		else if (varDecl->typeToken == TokenType::NOMBRE)
 			value.data = 0.0;
 		else if (varDecl->typeToken == TokenType::TEXTE)
 			value.data = std::string{};
@@ -80,10 +80,10 @@ void Interpreter::executeStmt(const Stmt& stmt)
 		else
 			value.data = false;
 
-		if (varDecl->typeToken == TokenType::ENTIER)
+		if (varDecl->typeToken == TokenType::NOMBRE)
 		{
 			if (!std::holds_alternative<double>(value.data))
-				throw std::runtime_error("Le type 'entier' attend une valeur numerique.");
+				throw std::runtime_error("Le type 'nombre' attend une valeur numerique.");
 		}
 		else if (varDecl->typeToken == TokenType::TEXTE)
 		{

@@ -1,10 +1,10 @@
 texte titre = "===== BAGETSCRIPT DEMO =====";
 afficher(titre);
 
-entier i = 1;
-entier somme = 0;
-entier pairs = 0;
-entier impairs = 0;
+nombre i = 1;
+nombre somme = 0;
+nombre pairs = 0;
+nombre impairs = 0;
 
 tantque (i <= 20)
 {

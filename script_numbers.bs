@@ -1,0 +1,8 @@
+nombre a = 0.5;
+nombre b = 2;
+nombre c = a + b;
+
+nombre z = 2;
+
+afficher(c);
+afficher(a);

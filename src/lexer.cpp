@@ -94,6 +94,14 @@ Token Lexer::readNumber()
     while (!isAtEnd() && std::isdigit((unsigned char)current()))
         value += advance();
 
+    if (!isAtEnd() && current() == '.' && std::isdigit((unsigned char)peek()))
+    {
+        value += advance();
+
+        while (!isAtEnd() && std::isdigit((unsigned char)current()))
+            value += advance();
+    }
+
     return makeToken(NUMBER, value);
 }
 
@@ -107,7 +115,7 @@ Token Lexer::readIdentifier()
         value += advance();
     }
 
-    if (value == "entier") return makeToken(ENTIER, value);
+    if (value == "nombre") return makeToken(NOMBRE, value);
     if (value == "texte") return makeToken(TEXTE, value);
     if (value == "booleen") return makeToken(BOOLEEN, value);
     if (value == "liste") return makeToken(LISTE, value);
@@ -117,7 +125,6 @@ Token Lexer::readIdentifier()
     if (value == "pour") return makeToken(POUR, value);
     if (value == "allant") return makeToken(ALLANT, value);
     if (value == "de") return makeToken(DE, value);
-    if (value == "a") return makeToken(A, value);
     if (value == "dans") return makeToken(DANS, value);
     if (value == "afficher") return makeToken(AFFICHER, value);
     if (value == "fonction") return makeToken(FONCTION, value);

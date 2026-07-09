@@ -71,7 +71,7 @@ std::unique_ptr<Stmt> Parser::declaration()
     if (match(TokenType::FONCTION))
         return functionDeclaration();
 
-    if (match(TokenType::ENTIER) || match(TokenType::TEXTE) || match(TokenType::BOOLEEN) || match(TokenType::LISTE))
+    if (match(TokenType::NOMBRE) || match(TokenType::TEXTE) || match(TokenType::BOOLEEN) || match(TokenType::LISTE))
         return variableDeclaration();
 
     return statement();
@@ -190,7 +190,10 @@ std::unique_ptr<Stmt> Parser::forStatement()
     {
         consume(TokenType::DE, "'de' attendu apres 'allant'.");
         auto start = expression();
-        consume(TokenType::A, "'a' attendu dans la boucle 'allant de ... a ...'.");
+
+        if (!(match(TokenType::A) || (check(TokenType::IDENTIFIER) && peek().value == "a" && advance().type == TokenType::IDENTIFIER)))
+            throw std::runtime_error("'a' attendu dans la boucle 'allant de ... a ...'.");
+
         auto end = expression();
         consume(TokenType::RIGHT_PAREN, "')' attendu apres la boucle pour.");
 

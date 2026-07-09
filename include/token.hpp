@@ -8,7 +8,7 @@ enum TokenType
     IDENTIFIER,
     STRING,
 
-    ENTIER,
+    NOMBRE,
     TEXTE,
     BOOLEEN,
     LISTE,
@@ -72,7 +72,7 @@ inline std::string tokenTypeToString(TokenType t)
         case IDENTIFIER: return "IDENTIFIER";
         case STRING: return "STRING";
 
-        case ENTIER: return "ENTIER";
+        case NOMBRE: return "NOMBRE";
         case TEXTE: return "TEXTE";
         case BOOLEEN: return "BOOLEEN";
         case LISTE: return "LISTE";

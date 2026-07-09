@@ -10,7 +10,7 @@ fonction additionDemo(a, b)
 
 fonction compterJusqua(n)
 {
-    entier i = 1;
+    nombre i = 1;
 
     tantque (i <= n)
     {

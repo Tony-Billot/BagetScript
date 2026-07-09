@@ -15,14 +15,14 @@ BagetScript aims to make code more readable for French speakers by using natural
 - `sinon` instead of `else`
 - `tantque` instead of `while`
 - `afficher` instead of `print`
-- `entier`, `texte`, `booléen` for types
+- `nombre`, `texte`, `booléen` for types
 
 ---
 
 ## 📜 Example
 
 ```bs
-entier a = 5;
-entier b = 8;
+nombre a = 5;
+nombre b = 8;
 
 afficher(a + b);
