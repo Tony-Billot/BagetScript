@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <filesystem>
 
 #include "interpreter.hpp"
 #include "lexer.hpp"
@@ -58,28 +59,39 @@ void printTokens(const std::vector<Token>& tokens)
 }
 }
 
-int main(int argc, char** argv) {
-
-    if (argc < 2) {
-        std::cout << "Commande à utiliser : bagetscript <ton_fichier>.bs [--dstokens]" << std::endl;
+int main(int argc, char** argv)
+{
+    if (argc < 2)
+    {
+        std::cout << "Commande à utiliser : bagetscript <ton_fichier>.bgt [--dstokens]" << std::endl;
         return 1;
     }
 
-    std::string path = argv[1];
+    std::filesystem::path path(argv[1]);
+
+    // Vérifie que le fichier possède bien l'extension .bgt
+    if (path.extension() != ".bgt")
+    {
+        std::cerr << "Erreur : le fichier " << path << " n'a pas l'extension .bgt" << std::endl;
+        return 1;
+    }
 
     bool debugTokens = false;
 
-    if (argc >= 3) {
+    if (argc >= 3)
+    {
         std::string option = argv[2];
 
-        if (option == "--dstokens") {
+        if (option == "--dstokens")
+        {
             debugTokens = true;
         }
     }
 
     std::ifstream file(path);
-    if (!file.is_open()) {
-        std::cout << "Erreur: impossible d'ouvrir le fichier " << path << std::endl;
+    if (!file.is_open())
+    {
+        std::cerr << "Erreur : impossible d'ouvrir le fichier " << path << std::endl;
         return 1;
     }
 
@@ -104,7 +116,7 @@ int main(int argc, char** argv) {
     }
     catch (const std::exception& e)
     {
-        std::cerr << "Erreur: " << e.what() << std::endl;
+        std::cerr << "Erreur : " << e.what() << std::endl;
         return 1;
     }
 
