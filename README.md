@@ -1,4 +1,4 @@
-# 🥖 BagetScript (.bs)
+# 🥖 BagetScript (.bgt)
 
 BagetScript is a simple interpreted programming language written in C++.  
 It is designed to make learning programming and algorithms easier through a clean, French-inspired syntax.
@@ -21,7 +21,7 @@ BagetScript aims to make code more readable for French speakers by using natural
 
 ## 📜 Example
 
-```bs
+```bgt
 nombre a = 5;
 nombre b = 8;
 
