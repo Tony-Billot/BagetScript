@@ -48,9 +48,22 @@ bool Parser::match(TokenType type)
     return true;
 }
 
+bool Parser::checkIdentifierLike()
+{
+    return check(TokenType::IDENTIFIER) || check(TokenType::A);
+}
+
 Token Parser::consume(TokenType type, const std::string& message)
 {
     if (check(type))
+        return advance();
+
+    throw std::runtime_error(message);
+}
+
+Token Parser::consumeIdentifierLike(const std::string& message)
+{
+    if (checkIdentifierLike())
         return advance();
 
     throw std::runtime_error(message);
@@ -99,7 +112,7 @@ std::unique_ptr<Stmt> Parser::statement()
 
 std::unique_ptr<Stmt> Parser::functionDeclaration()
 {
-    Token name = consume(TokenType::IDENTIFIER, "Nom de fonction attendu.");
+    Token name = consumeIdentifierLike("Nom de fonction attendu.");
     consume(TokenType::LEFT_PAREN, "'(' attendu apres le nom de fonction.");
 
     std::vector<std::string> parameters;
@@ -108,7 +121,7 @@ std::unique_ptr<Stmt> Parser::functionDeclaration()
     {
         do
         {
-            Token param = consume(TokenType::IDENTIFIER, "Nom de parametre attendu.");
+            Token param = consumeIdentifierLike("Nom de parametre attendu.");
             parameters.push_back(param.value);
         }
         while (match(TokenType::COMMA));
@@ -130,7 +143,7 @@ std::unique_ptr<Stmt> Parser::functionDeclaration()
 std::unique_ptr<Stmt> Parser::variableDeclaration()
 {
     Token typeToken = previous();
-    Token name = consume(TokenType::IDENTIFIER, "Nom de variable attendu.");
+    Token name = consumeIdentifierLike("Nom de variable attendu.");
     std::unique_ptr<Expr> initializer;
 
     if (match(TokenType::EQUAL))
@@ -184,14 +197,14 @@ std::unique_ptr<Stmt> Parser::whileStatement()
 std::unique_ptr<Stmt> Parser::forStatement()
 {
     consume(TokenType::LEFT_PAREN, "'(' attendu apres 'pour'.");
-    Token variable = consume(TokenType::IDENTIFIER, "Variable attendue dans la boucle pour.");
+    Token variable = consumeIdentifierLike("Variable attendue dans la boucle pour.");
 
     if (match(TokenType::ALLANT))
     {
         consume(TokenType::DE, "'de' attendu apres 'allant'.");
         auto start = expression();
 
-        if (!(match(TokenType::A) || (check(TokenType::IDENTIFIER) && peek().value == "a" && advance().type == TokenType::IDENTIFIER)))
+        if (!match(TokenType::A))
             throw std::runtime_error("'a' attendu dans la boucle 'allant de ... a ...'.");
 
         auto end = expression();
@@ -336,7 +349,7 @@ std::unique_ptr<Expr> Parser::primary()
         value.data = previous().value;
         expr = std::make_unique<LiteralExpr>(std::move(value));
     }
-    else if (match(TokenType::IDENTIFIER))
+    else if (match(TokenType::IDENTIFIER) || match(TokenType::A))
     {
         expr = std::make_unique<VariableExpr>(previous().value);
     }

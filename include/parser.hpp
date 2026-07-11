@@ -24,8 +24,10 @@ private:
     bool isAtEnd();
     bool check(TokenType type);
     bool match(TokenType type);
+    bool checkIdentifierLike();
 
     Token consume(TokenType type, const std::string& message);
+    Token consumeIdentifierLike(const std::string& message);
 
     std::unique_ptr<Stmt> declaration();
     std::unique_ptr<Stmt> statement();

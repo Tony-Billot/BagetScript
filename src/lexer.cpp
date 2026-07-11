@@ -125,6 +125,7 @@ Token Lexer::readIdentifier()
     if (value == "pour") return makeToken(POUR, value);
     if (value == "allant") return makeToken(ALLANT, value);
     if (value == "de") return makeToken(DE, value);
+    if (value == "a") return makeToken(A, value);
     if (value == "dans") return makeToken(DANS, value);
     if (value == "afficher") return makeToken(AFFICHER, value);
     if (value == "fonction") return makeToken(FONCTION, value);
