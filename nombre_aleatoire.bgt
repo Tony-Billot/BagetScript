@@ -1,0 +1,13 @@
+
+fonction random(nombre1, nombre2)
+{
+    nombre seed = 12345;
+    nombre seed = (seed * 1103515245 + 12345) % 2147483648;
+    nombre unnombre = seed / 2147483648;
+
+    retourner nombre1 + unnombre * (nombre2 - nombre1 + 1);
+}
+
+afficher(random(1, 2));
+afficher(random(1, 2));
+afficher(random(1, 2));
