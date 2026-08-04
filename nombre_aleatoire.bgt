@@ -8,6 +8,6 @@ fonction random(nombre1, nombre2)
     retourner nombre1 + unnombre * (nombre2 - nombre1 + 1);
 }
 
-afficher(random(1, 2));
-afficher(random(1, 2));
-afficher(random(1, 2));
+nombre_aleatoire = random(1, 2);
+
+afficher(nombre_aleatoire);

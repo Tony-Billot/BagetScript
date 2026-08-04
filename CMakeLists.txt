@@ -5,15 +5,20 @@ project(BagetScript VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Inclure headers
-include_directories(include)
+# Inclure les headers dans la nouvelle arborescence
+include_directories(
+    src/common
+    src/lexer
+    src/parser
+    src/interpreter
+)
 
 # Fichiers sources
 set(SOURCES
     src/main.cpp
-    src/lexer.cpp
-    src/parser.cpp
-    src/interpreter.cpp
+    src/lexer/lexer.cpp
+    src/parser/parser.cpp
+    src/interpreter/interpreter.cpp
 )
 
 # Executable
