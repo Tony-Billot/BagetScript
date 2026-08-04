@@ -1,8 +1,0 @@
-nombre somme = 0;
-
-pour (i allant de 1 a 3)
-{
-    somme = somme + i;
-}
-
-afficher(somme);
