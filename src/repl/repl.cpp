@@ -1,6 +1,7 @@
 #include "repl/repl.hpp"
 #include <windows.h>
 #include <iostream>
+#include <fstream>
 #include <string>
 
 void REPL::run()
@@ -22,5 +23,16 @@ void REPL::run()
 
         if (input == "quitter")
             break;
+    }
+}
+
+void REPL::run(std::ifstream& file)
+{
+    std::string line;
+
+    while (std::getline(file, line))
+    {
+        //TODO : Lancer le code contenu dans le fichier
+        std::cout << line << '\n';
     }
 }
