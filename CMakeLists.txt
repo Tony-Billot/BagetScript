@@ -5,20 +5,12 @@ project(BagetScript VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(
-    src/common
-    src/lexer
-    src/parser
-    src/interpreter
-)
+add_compile_options(/utf-8)
 
-# Fichiers sources
+include_directories(include)
+
 set(SOURCES
     src/main.cpp
-    src/lexer/lexer.cpp
-    src/parser/parser.cpp
-    src/interpreter/interpreter.cpp
 )
 
-# Executable
 add_executable(bagetscript ${SOURCES})
