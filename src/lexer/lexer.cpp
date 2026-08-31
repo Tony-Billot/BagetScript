@@ -18,9 +18,26 @@ std::vector<Token> Lexer::to_tokens(const std::string& source)
 {
     std::vector<Token> tokens;
     std::string current_token;
+
+    bool in_a_string = false;
+
     for (char c : source)
     {
-        if (c == ' ')
+        if (c == '"')
+        {
+            if (in_a_string)
+            {
+                tokens.push_back({TokenType::TEXTE, current_token});
+                current_token.clear();
+            }
+
+            in_a_string = !in_a_string;
+        }
+        else if (in_a_string)
+        {
+            current_token += c;
+        }
+        else if (std::isspace(c))
         {
             if (!current_token.empty())
                 tokens.push_back(lecture_token(current_token));
@@ -44,10 +61,13 @@ std::vector<Token> Lexer::to_tokens(const std::string& source)
     if (!current_token.empty())
         tokens.push_back(lecture_token(current_token));
 
+    tokens.push_back({TokenType::FIN_DE_FICHIER, "code is dead"});
+
     for (const auto& token : tokens)
     {
         std::cout << token.valeur << std::endl;
     }
+
     return tokens;
 }
 

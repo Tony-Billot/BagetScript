@@ -1,4 +1,1 @@
-nombre a = 5;
-nombre b = 8;
-
-afficher(a + b);
+texte bonjour = "Yo les gens, ca va ? ";
