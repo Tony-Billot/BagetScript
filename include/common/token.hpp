@@ -4,8 +4,12 @@
 enum class TokenType {
 
     // Types de données
-    NOMBRE, // Nombre
-    TEXTE, // Chaine de caractères
+    TYPE_NOMBRE, // Nombre
+    TYPE_TEXTE, // Chaine de caractères
+
+    // Données en mémoire
+    NOMBRE,
+    TEXTE,
 
     // Idenfitiants
     IDENTIFIANT,

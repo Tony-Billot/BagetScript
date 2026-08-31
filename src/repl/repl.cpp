@@ -23,6 +23,9 @@ void REPL::run()
 
         if (input == "quitter")
             break;
+
+        std::vector<Token> tokens = lexer.to_tokens(input);
+
     }
 }
 
@@ -32,7 +35,6 @@ void REPL::run(std::ifstream& file)
 
     while (std::getline(file, line))
     {
-        //TODO : Lancer le code contenu dans le fichier
-        std::cout << line << '\n';
+        std::vector<Token> tokens = lexer.to_tokens(line);
     }
 }
