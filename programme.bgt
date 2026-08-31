@@ -1,1 +1,3 @@
-texte bonjour = "Yo les gens, ca va ? ";
+nombre a = 12.5;
+texte message = "Bonjour ça va ?";
+afficher(a + 2);

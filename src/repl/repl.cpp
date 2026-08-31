@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <iterator>
+
 
 void REPL::run()
 {
@@ -31,10 +33,9 @@ void REPL::run()
 
 void REPL::run(std::ifstream& file)
 {
-    std::string line;
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
 
-    while (std::getline(file, line))
-    {
-        std::vector<Token> tokens = lexer.to_tokens(line);
-    }
+    std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    std::vector<Token> tokens = lexer.to_tokens(source);
 }

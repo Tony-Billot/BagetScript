@@ -60,12 +60,11 @@ std::vector<Token> Lexer::to_tokens(const std::string& source)
 
     if (!current_token.empty())
         tokens.push_back(lecture_token(current_token));
-
     tokens.push_back({TokenType::FIN_DE_FICHIER, "code is dead"});
 
     for (const auto& token : tokens)
     {
-        std::cout << token.valeur << std::endl;
+        std::cout << "Token: " << token.valeur << ", Type: " << token_type_to_string(token.type) << '\n';
     }
 
     return tokens;
@@ -73,22 +72,72 @@ std::vector<Token> Lexer::to_tokens(const std::string& source)
 
 Token Lexer::lecture_token(const std::string& token)
 {
-    static const std::unordered_map<std::string, TokenType> mots_cles = {
+    static const std::unordered_map<std::string, TokenType> keywords = {
         {"nombre", TokenType::TYPE_NOMBRE},
         {"texte", TokenType::TYPE_TEXTE},
         {"afficher", TokenType::AFFICHER}
     };
 
-    std::unordered_map<std::string, TokenType>::const_iterator it = mots_cles.find(token);
-    
-    if (it != mots_cles.end())
+    std::unordered_map<std::string, TokenType>::const_iterator it = keywords.find(token);
+
+    if (it != keywords.end())
+    {
         return {it->second, token};
+    }
+
+    bool has_dot = false;
+    bool has_digit = false;
 
     for (char c : token)
     {
-        if (!std::isdigit(c))
+        if (c == '.')
+        {
+            if (has_dot)
+            {
+                return {TokenType::IDENTIFIANT, token};
+            }
+
+            has_dot = true;
+        }
+        else if (!std::isdigit(c))
+        {
             return {TokenType::IDENTIFIANT, token};
+        }
+        else
+        {
+            has_digit = true;
+        }
     }
 
-    return {TokenType::NOMBRE, token};
+    if (has_digit)
+    {
+        return {TokenType::NOMBRE, token};
+    }
+
+    return {TokenType::IDENTIFIANT, token};
+}
+
+// DEBUG
+std::string Lexer::token_type_to_string(TokenType type)
+{
+    switch (type)
+    {
+        case TokenType::TYPE_NOMBRE: return "TYPE_NOMBRE";
+        case TokenType::TYPE_TEXTE: return "TYPE_TEXTE";
+        case TokenType::NOMBRE: return "NOMBRE";
+        case TokenType::TEXTE: return "TEXTE";
+        case TokenType::IDENTIFIANT: return "IDENTIFIANT";
+        case TokenType::A_POUR_VALEUR: return "A_POUR_VALEUR";
+        case TokenType::PLUS: return "PLUS";
+        case TokenType::MOINS: return "MOINS";
+        case TokenType::FOIS: return "FOIS";
+        case TokenType::DIVISE: return "DIVISE";
+        case TokenType::PARENTHESE_GAUCHE: return "PARENTHESE_GAUCHE";
+        case TokenType::PARENTHESE_DROITE: return "PARENTHESE_DROITE";
+        case TokenType::POINT_VIRGULE: return "POINT_VIRGULE";
+        case TokenType::AFFICHER: return "AFFICHER";
+        case TokenType::FIN_DE_FICHIER: return "FIN_DE_FICHIER";
+    }
+
+    return "INCONNU";
 }
