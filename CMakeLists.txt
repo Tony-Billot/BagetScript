@@ -12,6 +12,7 @@ include_directories(include)
 set(SOURCES
     src/main.cpp
     src/repl/repl.cpp
+    src/lexer/lexer.cpp
 )
 
 add_executable(bagetscript ${SOURCES})
