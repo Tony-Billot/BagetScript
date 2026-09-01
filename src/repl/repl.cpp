@@ -42,9 +42,16 @@ void REPL::run(std::ifstream& file)
 
     if(tokens[0].type == TokenType::TYPE_NOMBRE || tokens[0].type == TokenType::TYPE_TEXTE)
     {
-        Parser parser(tokens);
-        Declaration declaration = parser.parse_declaration();
+        try
+        {
+            Parser parser(tokens);
+            Declaration declaration = parser.parse_declaration();
 
-        std::cout << "Nom: " << declaration.name << ", Valeur: " << declaration.value << '\n';
+            std::cout << "Nom: " << declaration.name << ", Valeur: " << declaration.value << '\n';
+        }
+        catch (const std::runtime_error& error)
+        {
+            std::cout << error.what() << '\n';
+        }
     }
 }

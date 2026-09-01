@@ -40,4 +40,6 @@ struct Token
 {
     TokenType type;
     std::string valeur;
+    int line;
+    int column;
 };

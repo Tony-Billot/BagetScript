@@ -20,14 +20,24 @@ std::vector<Token> Lexer::to_tokens(const std::string& source)
     std::string current_token;
 
     bool in_a_string = false;
+    int line = 1;
+    int column = 1;
+    int token_line = 1;
+    int token_column = 1;
+
 
     for (char c : source)
     {
+        if (current_token.empty())
+        {
+            token_line = line;
+            token_column = column;
+        }
         if (c == '"')
         {
             if (in_a_string)
             {
-                tokens.push_back({TokenType::TEXTE, current_token});
+                tokens.push_back({TokenType::TEXTE, current_token, token_line, token_column});
                 current_token.clear();
             }
 
@@ -37,36 +47,60 @@ std::vector<Token> Lexer::to_tokens(const std::string& source)
         {
             current_token += c;
         }
+        else if (c == '\n')
+        {
+            if (!current_token.empty())
+            {
+                Token token = lecture_token(current_token);
+                token.line = token_line;
+                token.column = token_column;
+                tokens.push_back(token);
+                current_token.clear();
+            }
+
+            line++;
+            column = 0;
+        }
         else if (std::isspace(c))
         {
             if (!current_token.empty())
-                tokens.push_back(lecture_token(current_token));
-
-            current_token.clear();
+            {
+                Token token = lecture_token(current_token);
+                token.line = token_line;
+                token.column = token_column;
+                tokens.push_back(token);
+                current_token.clear();
+            }
         }
         else if (symboles.find(c) != symboles.end())
         {
             if (!current_token.empty())
-                tokens.push_back(lecture_token(current_token));
+            {
+                Token token = lecture_token(current_token);
+                token.line = token_line;
+                token.column = token_column;
+                tokens.push_back(token);
+                current_token.clear();
+            }
 
-            current_token.clear();
-            tokens.push_back({symboles.at(c), std::string(1, c)});
+            tokens.push_back({symboles.at(c), std::string(1, c), line, column});
         }
         else
         {
             current_token += c;
         }
+
+        column++;
     }
 
     if (!current_token.empty())
-        tokens.push_back(lecture_token(current_token));
-    tokens.push_back({TokenType::FIN_DE_FICHIER, "code is dead"});
-
-    for (const auto& token : tokens)
     {
-        std::cout << "Token: " << token.valeur << ", Type: " << token_type_to_string(token.type) << '\n';
+        Token token = lecture_token(current_token);
+        token.line = token_line;
+        token.column = token_column;
+        tokens.push_back(token);
+        current_token.clear();
     }
-
     return tokens;
 }
 
@@ -82,7 +116,7 @@ Token Lexer::lecture_token(const std::string& token)
 
     if (it != keywords.end())
     {
-        return {it->second, token};
+        return {it->second, token, 0, 0};
     }
 
     bool has_dot = false;
@@ -94,14 +128,14 @@ Token Lexer::lecture_token(const std::string& token)
         {
             if (has_dot)
             {
-                return {TokenType::IDENTIFIANT, token};
+                return {TokenType::IDENTIFIANT, token, 0, 0};
             }
 
             has_dot = true;
         }
         else if (!std::isdigit(c))
         {
-            return {TokenType::IDENTIFIANT, token};
+            return {TokenType::IDENTIFIANT, token, 0, 0};
         }
         else
         {
@@ -111,10 +145,10 @@ Token Lexer::lecture_token(const std::string& token)
 
     if (has_digit)
     {
-        return {TokenType::NOMBRE, token};
+        return {TokenType::NOMBRE, token, 0, 0};
     }
 
-    return {TokenType::IDENTIFIANT, token};
+    return {TokenType::IDENTIFIANT, token, 0, 0};
 }
 
 // DEBUG
