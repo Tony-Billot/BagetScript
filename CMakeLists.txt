@@ -13,6 +13,7 @@ set(SOURCES
     src/main.cpp
     src/repl/repl.cpp
     src/lexer/lexer.cpp
+    src/parser/parser.cpp
     src/types/number.cpp
     src/types/text.cpp
 )

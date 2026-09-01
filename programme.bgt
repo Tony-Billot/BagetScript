@@ -1,3 +1,13 @@
-nombre a = 12.5;
-texte message = "Bonjour ça va ?";
-afficher(a + 2);
+nombre entier = 42;
+nombre decimal = 12.5;
+nombre zero = 0.25;
+
+texte message = "Bonjour les gens !";
+texte phrase = "Ça fonctionne ?";
+
+nombre resultat = entier + decimal;
+nombre calcul = 5 +   2 * 3 - 4 / 2;
+
+afficher(resultat  );
+afficher(message);
+afficher(calcul);

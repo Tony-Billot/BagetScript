@@ -1,4 +1,5 @@
 #include "repl/repl.hpp"
+#include "parser/parser.hpp"
 #include <windows.h>
 #include <iostream>
 #include <fstream>
@@ -38,4 +39,12 @@ void REPL::run(std::ifstream& file)
 
     std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     std::vector<Token> tokens = lexer.to_tokens(source);
+
+    if(tokens[0].type == TokenType::TYPE_NOMBRE || tokens[0].type == TokenType::TYPE_TEXTE)
+    {
+        Parser parser(tokens);
+        Declaration declaration = parser.parse_declaration();
+
+        std::cout << "Nom: " << declaration.name << ", Valeur: " << declaration.value << '\n';
+    }
 }
