@@ -34,6 +34,7 @@ Declaration Parser::parse_declaration()
     consume(TokenType::POINT_VIRGULE);
 
     return declaration;
+    
 }
 
 std::string Parser::token_type_to_string(TokenType type)
