@@ -1,6 +1,7 @@
 #include "repl/repl.hpp"
 #include "parser/parser.hpp"
 #include "ast/expressions/number_expression.hpp"
+#include "debug/ast_printer.hpp"
 
 #include <windows.h>
 #include <iostream>
@@ -52,8 +53,8 @@ void REPL::run(std::ifstream& file)
         {
             Parser parser(tokens);
             Declaration declaration = parser.parse_declaration();
+            ASTPrinter::print(declaration);
             NumberExpression* number = static_cast<NumberExpression*>(declaration.value.get());
-            std::cout << "Nom: " << declaration.name << ", Valeur: " << number->value << '\n';
         }
         catch (const std::runtime_error& error)
         {

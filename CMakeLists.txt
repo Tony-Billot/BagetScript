@@ -16,6 +16,7 @@ set(SOURCES
     src/parser/parser.cpp
     src/types/number.cpp
     src/types/text.cpp
+    src/debug/ast_printer.cpp
 )
 
 add_executable(bagetscript ${SOURCES})
