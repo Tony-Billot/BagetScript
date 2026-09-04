@@ -1,5 +1,7 @@
 #include "repl/repl.hpp"
 #include "parser/parser.hpp"
+#include "ast/expressions/number_expression.hpp"
+
 #include <windows.h>
 #include <iostream>
 #include <fstream>
@@ -28,9 +30,9 @@ void REPL::run()
             break;
 
         std::vector<Token> tokens = lexer.to_tokens(input);
-
     }
 }
+
 
 void REPL::run(std::ifstream& file)
 {
@@ -40,18 +42,26 @@ void REPL::run(std::ifstream& file)
     std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     std::vector<Token> tokens = lexer.to_tokens(source);
 
-    if(tokens[0].type == TokenType::TYPE_NOMBRE || tokens[0].type == TokenType::TYPE_TEXTE)
+    if (tokens.empty()) {
+        return;
+    }
+
+    if (tokens[0].type == TokenType::TYPE_NOMBRE || tokens[0].type == TokenType::TYPE_TEXTE)
     {
         try
         {
             Parser parser(tokens);
             Declaration declaration = parser.parse_declaration();
-
-            std::cout << "Nom: " << declaration.name << ", Valeur: " << declaration.value << '\n';
+            NumberExpression* number = static_cast<NumberExpression*>(declaration.value.get());
+            std::cout << "Nom: " << declaration.name << ", Valeur: " << number->value << '\n';
         }
         catch (const std::runtime_error& error)
         {
             std::cout << error.what() << '\n';
         }
+    }
+    else
+    {
+        std::cout << "Erreur : déclaration attendue ligne " << tokens[0].line << ", colonne " << tokens[0].column << ".\n";
     }
 }
