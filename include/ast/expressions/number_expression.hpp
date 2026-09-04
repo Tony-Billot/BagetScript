@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Expression.hpp"
+#include "../expression.hpp"
 
 struct NumberExpression : Expression
 {

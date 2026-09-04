@@ -1,5 +1,7 @@
 #include "parser/parser.hpp"
+#include "ast/expressions/number_expression.hpp"
 #include <iostream>
+#include <memory>
 
 
 Parser::Parser(std::vector<Token> tokens)
@@ -27,14 +29,17 @@ Declaration Parser::parse_declaration()
 {
     Declaration declaration;
 
-    consume(TokenType::TYPE_NOMBRE);
+    declaration.type = consume(TokenType::TYPE_NOMBRE).type;
     declaration.name = consume(TokenType::IDENTIFIANT).valeur;
     consume(TokenType::A_POUR_VALEUR);
-    declaration.value = consume(TokenType::NOMBRE).valeur;
+
+    auto value = std::make_unique<NumberExpression>();
+    value->value = std::stod(consume(TokenType::NOMBRE).valeur);
+    declaration.value = std::move(value);
+
     consume(TokenType::POINT_VIRGULE);
 
     return declaration;
-    
 }
 
 std::string Parser::token_type_to_string(TokenType type)

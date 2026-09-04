@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Expression.hpp"
+#include "../expression.hpp"
 #include <string>
 
 struct TextExpression : Expression

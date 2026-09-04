@@ -1,6 +1,6 @@
 #pragma once
 
-#include "astnode.hpp"
+#include "ast_node.hpp"
 
 struct Statement : ASTNode
 {
