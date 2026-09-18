@@ -46,29 +46,30 @@ void REPL::run(std::ifstream& file)
         return;
     }
 
-    if (tokens[0].type == TokenType::TYPE_NOMBRE || tokens[0].type == TokenType::TYPE_TEXTE || tokens[0].type == TokenType::AFFICHER)
+    try
     {
-        try
+        Parser parser(tokens);
+
+        while (parser.has_more_tokens())
         {
-            Parser parser(tokens);
-            if (tokens[0].type == TokenType::AFFICHER)
+            if (parser.current_token().type == TokenType::AFFICHER)
             {
                 PrintStatement statement = parser.parse_print_statement();
                 ASTPrinter::print(statement);
             }
-            else
+            else if (parser.current_token().type == TokenType::TYPE_NOMBRE || parser.current_token().type == TokenType::TYPE_TEXTE)
             {
                 Declaration declaration = parser.parse_declaration();
                 ASTPrinter::print(declaration);
             }
-        }
-        catch (const std::runtime_error& error)
-        {
-            std::cout << error.what() << '\n';
+            else
+            {
+                throw std::runtime_error("Erreur : déclaration ou instruction afficher attendue ligne " + std::to_string(parser.current_token().line) + ", colonne " + std::to_string(parser.current_token().column) + ".");
+            }
         }
     }
-    else
+    catch (const std::runtime_error& error)
     {
-        std::cout << "Erreur : déclaration attendue ligne " << tokens[0].line << ", colonne " << tokens[0].column << ".\n";
+        std::cout << error.what() << '\n';
     }
 }

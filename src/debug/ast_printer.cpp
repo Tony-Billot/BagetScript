@@ -1,4 +1,5 @@
 #include "debug/ast_printer.hpp"
+#include "ast/expressions/identifier_expression.hpp"
 #include "ast/expressions/number_expression.hpp"
 #include "ast/expressions/text_expression.hpp"
 
@@ -38,5 +39,10 @@ void ASTPrinter::print(const PrintStatement& statement)
     {
         std::cout << "└── NumberExpression\n";
         std::cout << "    └── value: " << number->value << '\n';
+    }
+    else if (auto* identifier = dynamic_cast<IdentifierExpression*>(statement.expression.get()))
+    {
+        std::cout << "└── IdentifierExpression\n";
+        std::cout << "    └── name: " << identifier->name << '\n';
     }
 }

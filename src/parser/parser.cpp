@@ -1,4 +1,5 @@
 #include "parser/parser.hpp"
+#include "ast/expressions/identifier_expression.hpp"
 #include "ast/expressions/number_expression.hpp"
 #include "ast/expressions/text_expression.hpp"
 #include <iostream>
@@ -8,6 +9,11 @@
 Parser::Parser(std::vector<Token> tokens)
 {
     this->tokens = tokens;
+}
+
+bool Parser::has_more_tokens() const
+{
+    return position < static_cast<int>(tokens.size());
 }
 
 Token Parser::current_token()
@@ -86,9 +92,15 @@ PrintStatement Parser::parse_print_statement()
         value->value = std::stod(consume(TokenType::NOMBRE).valeur);
         statement.expression = std::move(value);
     }
+    else if (current_token().type == TokenType::IDENTIFIANT)
+    {
+        auto value = std::make_unique<IdentifierExpression>();
+        value->name = consume(TokenType::IDENTIFIANT).valeur;
+        statement.expression = std::move(value);
+    }
     else
     {
-        throw std::runtime_error("Erreur : texte ou nombre attendu ligne " + std::to_string(current_token().line) + ", colonne " + std::to_string(current_token().column) + ".");
+        throw std::runtime_error("Erreur : texte, nombre ou identifiant attendu ligne " + std::to_string(current_token().line) + ", colonne " + std::to_string(current_token().column) + ".");
     }
 
     consume(TokenType::PARENTHESE_DROITE);
