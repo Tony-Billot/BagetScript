@@ -67,6 +67,36 @@ Declaration Parser::parse_declaration()
     return declaration;
 }
 
+PrintStatement Parser::parse_print_statement()
+{
+    PrintStatement statement;
+
+    consume(TokenType::AFFICHER);
+    consume(TokenType::PARENTHESE_GAUCHE);
+
+    if (current_token().type == TokenType::TEXTE)
+    {
+        auto value = std::make_unique<TextExpression>();
+        value->value = consume(TokenType::TEXTE).valeur;
+        statement.expression = std::move(value);
+    }
+    else if (current_token().type == TokenType::NOMBRE)
+    {
+        auto value = std::make_unique<NumberExpression>();
+        value->value = std::stod(consume(TokenType::NOMBRE).valeur);
+        statement.expression = std::move(value);
+    }
+    else
+    {
+        throw std::runtime_error("Erreur : texte ou nombre attendu ligne " + std::to_string(current_token().line) + ", colonne " + std::to_string(current_token().column) + ".");
+    }
+
+    consume(TokenType::PARENTHESE_DROITE);
+    consume(TokenType::POINT_VIRGULE);
+
+    return statement;
+}
+
 std::string Parser::token_type_to_string(TokenType type)
 {
     switch (type)

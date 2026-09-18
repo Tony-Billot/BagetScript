@@ -46,13 +46,21 @@ void REPL::run(std::ifstream& file)
         return;
     }
 
-    if (tokens[0].type == TokenType::TYPE_NOMBRE || tokens[0].type == TokenType::TYPE_TEXTE)
+    if (tokens[0].type == TokenType::TYPE_NOMBRE || tokens[0].type == TokenType::TYPE_TEXTE || tokens[0].type == TokenType::AFFICHER)
     {
         try
         {
             Parser parser(tokens);
-            Declaration declaration = parser.parse_declaration();
-            ASTPrinter::print(declaration);
+            if (tokens[0].type == TokenType::AFFICHER)
+            {
+                PrintStatement statement = parser.parse_print_statement();
+                ASTPrinter::print(statement);
+            }
+            else
+            {
+                Declaration declaration = parser.parse_declaration();
+                ASTPrinter::print(declaration);
+            }
         }
         catch (const std::runtime_error& error)
         {

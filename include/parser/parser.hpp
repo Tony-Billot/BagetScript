@@ -1,5 +1,6 @@
 #include "common/token.hpp"
 #include "ast/statements/declaration.hpp"
+#include "ast/statements/print_statement.hpp"
 
 #include <vector>
 
@@ -16,4 +17,5 @@ private:
 public:
     Parser(std::vector<Token> tokens);
     Declaration parse_declaration();
+    PrintStatement parse_print_statement();
 };

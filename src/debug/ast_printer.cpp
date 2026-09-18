@@ -24,3 +24,19 @@ void ASTPrinter::print(const Declaration& declaration)
         std::cout << "        └── value: " << text->value << '\n';
     }
 }
+
+void ASTPrinter::print(const PrintStatement& statement)
+{
+    std::cout << "PrintStatement\n";
+
+    if (auto* text = dynamic_cast<TextExpression*>(statement.expression.get()))
+    {
+        std::cout << "└── TextExpression\n";
+        std::cout << "    └── value: " << text->value << '\n';
+    }
+    else if (auto* number = dynamic_cast<NumberExpression*>(statement.expression.get()))
+    {
+        std::cout << "└── NumberExpression\n";
+        std::cout << "    └── value: " << number->value << '\n';
+    }
+}
