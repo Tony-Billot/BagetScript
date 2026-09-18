@@ -1,6 +1,6 @@
 #include "repl/repl.hpp"
 #include "parser/parser.hpp"
-#include "debug/ast_printer.hpp"
+#include "interpreter/interpreter.hpp"
 
 #include <windows.h>
 #include <iostream>
@@ -49,18 +49,19 @@ void REPL::run(std::ifstream& file)
     try
     {
         Parser parser(tokens);
+        Interpreter interpreter;
 
         while (parser.has_more_tokens())
         {
             if (parser.current_token().type == TokenType::AFFICHER)
             {
                 PrintStatement statement = parser.parse_print_statement();
-                ASTPrinter::print(statement);
+                interpreter.execute(statement);
             }
             else if (parser.current_token().type == TokenType::TYPE_NOMBRE || parser.current_token().type == TokenType::TYPE_TEXTE)
             {
                 Declaration declaration = parser.parse_declaration();
-                ASTPrinter::print(declaration);
+                interpreter.execute(declaration);
             }
             else
             {

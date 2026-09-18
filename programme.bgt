@@ -1,1 +1,7 @@
-afficher(42);
+nombre a = 42;
+texte b = "texte";
+
+afficher(a);
+afficher(b);
+afficher("Bonjour");
+afficher(12);
