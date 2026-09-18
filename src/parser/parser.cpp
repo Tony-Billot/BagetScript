@@ -1,5 +1,6 @@
 #include "parser/parser.hpp"
 #include "ast/expressions/number_expression.hpp"
+#include "ast/expressions/text_expression.hpp"
 #include <iostream>
 #include <memory>
 
@@ -29,13 +30,37 @@ Declaration Parser::parse_declaration()
 {
     Declaration declaration;
 
-    declaration.type = consume(TokenType::TYPE_NOMBRE).type;
+    if (current_token().type != TokenType::TYPE_NOMBRE && current_token().type != TokenType::TYPE_TEXTE)
+    {
+        throw std::runtime_error("Erreur : type nombre ou type texte attendu ligne " + std::to_string(current_token().line) + ", colonne " + std::to_string(current_token().column) + ".");
+    }
+
+    declaration.type = consume(current_token().type).type;
     declaration.name = consume(TokenType::IDENTIFIANT).valeur;
     consume(TokenType::A_POUR_VALEUR);
 
-    auto value = std::make_unique<NumberExpression>();
-    value->value = std::stod(consume(TokenType::NOMBRE).valeur);
-    declaration.value = std::move(value);
+    Token value_token = current_token();
+    TokenType expected_value_type = declaration.type == TokenType::TYPE_NOMBRE
+        ? TokenType::NOMBRE
+        : TokenType::TEXTE;
+
+    if (value_token.type != expected_value_type)
+    {
+        throw std::runtime_error("Erreur : valeur de type " + token_type_to_string(value_token.type) + " incompatible avec " + token_type_to_string(declaration.type) + " ligne " + std::to_string(value_token.line) + ", colonne " + std::to_string(value_token.column) + ".");
+    }
+
+    if (declaration.type == TokenType::TYPE_NOMBRE)
+    {
+        auto value = std::make_unique<NumberExpression>();
+        value->value = std::stod(consume(TokenType::NOMBRE).valeur);
+        declaration.value = std::move(value);
+    }
+    else
+    {
+        auto value = std::make_unique<TextExpression>();
+        value->value = consume(TokenType::TEXTE).valeur;
+        declaration.value = std::move(value);
+    }
 
     consume(TokenType::POINT_VIRGULE);
 
