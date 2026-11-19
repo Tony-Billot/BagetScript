@@ -18,7 +18,7 @@ class Parser
         std::unique_ptr<Expression> parse_addition();
         std::unique_ptr<Expression> parse_multiplication();
         std::unique_ptr<Expression> parse_value();
-
+        std::unique_ptr<Expression> parse_unary();
     public:
         Parser(std::vector<Token> tokens);
         Token current_token();

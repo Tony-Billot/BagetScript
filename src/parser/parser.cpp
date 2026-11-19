@@ -6,6 +6,7 @@
 #include <iostream>
 #include <memory>
 #include "ast/expressions/binary_expression.hpp"
+#include "ast/expressions/unary_expression.hpp"
 
 
 Parser::Parser(std::vector<Token> tokens)
@@ -96,12 +97,12 @@ std::unique_ptr<Expression> Parser::parse_addition()
 
 std::unique_ptr<Expression> Parser::parse_multiplication()
 {
-    auto result = parse_value();
+    auto result = parse_unary();
 
     while (is_current(TokenType::FOIS) || is_current(TokenType::DIVISE))
     {
         Token operator_token = consume(current_token().type);
-        auto right_side = parse_value();
+        auto right_side = parse_unary();
         result = operate(std::move(result), operator_token, std::move(right_side));
     }
 
@@ -151,6 +152,23 @@ std::unique_ptr<Expression> Parser::parse_value()
     }
 
     throw SyntaxError("nombre, texte, variable ou parenthèse attendu", token.line, token.column);
+}
+
+
+std::unique_ptr<Expression> Parser::parse_unary()
+{
+    if (is_current(TokenType::MOINS))
+    {
+        Token operator_token = consume(TokenType::MOINS);
+        auto negative = std::make_unique<UnaryExpression>();
+        negative->operation = operator_token.type;
+        negative->value = parse_unary();
+        negative->line = operator_token.line;
+        negative->column = operator_token.column;
+        return negative;
+    }
+
+    return parse_value();
 }
 
 bool Parser::is_current(TokenType type)

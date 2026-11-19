@@ -6,6 +6,8 @@
 #include <charconv>
 #include <iostream>
 #include "ast/expressions/binary_expression.hpp"
+#include "ast/expressions/unary_expression.hpp"
+#include <algorithm>
 
 
 Interpreter::Value Interpreter::evaluate(const Expression& expression)
@@ -20,9 +22,26 @@ Interpreter::Value Interpreter::evaluate(const Expression& expression)
         return text->value;
     }
 
+    if (const UnaryExpression* unary = dynamic_cast<const UnaryExpression*>(&expression))
+    {
+        Value value = evaluate(*unary->value);
+
+        if (unary->operation == TokenType::MOINS)
+        {
+            // Reverse the string : to change if not smart
+            if (!std::holds_alternative<double>(value))
+            {
+                std::string text = std::get<std::string>(value);
+                std::reverse(text.begin(), text.end());
+                return text;
+            }
+            return -std::get<double>(value);
+        }
+
+        throw RuntimeError("opérateur unaire inconnu", unary->line, unary->column);
+    }
 
     if (const IdentifierExpression* identifier = dynamic_cast<const IdentifierExpression*>(&expression))
-
     {
         const auto variable = variables.find(identifier->name);
         if (variable == variables.end()) {
