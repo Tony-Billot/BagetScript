@@ -1,5 +1,7 @@
 #include "repl/repl.hpp"
 #include "parser/parser.hpp"
+#include "interpreter/interpreter.hpp"
+
 #include <windows.h>
 #include <iostream>
 #include <fstream>
@@ -28,9 +30,9 @@ void REPL::run()
             break;
 
         std::vector<Token> tokens = lexer.to_tokens(input);
-
     }
 }
+
 
 void REPL::run(std::ifstream& file)
 {
@@ -40,18 +42,35 @@ void REPL::run(std::ifstream& file)
     std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     std::vector<Token> tokens = lexer.to_tokens(source);
 
-    if(tokens[0].type == TokenType::TYPE_NOMBRE || tokens[0].type == TokenType::TYPE_TEXTE)
-    {
-        try
-        {
-            Parser parser(tokens);
-            Declaration declaration = parser.parse_declaration();
+    if (tokens.empty()) {
+        return;
+    }
 
-            std::cout << "Nom: " << declaration.name << ", Valeur: " << declaration.value << '\n';
-        }
-        catch (const std::runtime_error& error)
+    try
+    {
+        Parser parser(tokens);
+        Interpreter interpreter;
+
+        while (parser.has_more_tokens())
         {
-            std::cout << error.what() << '\n';
+            if (parser.current_token().type == TokenType::AFFICHER)
+            {
+                PrintStatement statement = parser.parse_print_statement();
+                interpreter.execute(statement);
+            }
+            else if (parser.current_token().type == TokenType::TYPE_NOMBRE || parser.current_token().type == TokenType::TYPE_TEXTE)
+            {
+                Declaration declaration = parser.parse_declaration();
+                interpreter.execute(declaration);
+            }
+            else
+            {
+                throw std::runtime_error("Erreur : déclaration ou instruction afficher attendue ligne " + std::to_string(parser.current_token().line) + ", colonne " + std::to_string(parser.current_token().column) + ".");
+            }
         }
+    }
+    catch (const std::runtime_error& error)
+    {
+        std::cout << error.what() << '\n';
     }
 }

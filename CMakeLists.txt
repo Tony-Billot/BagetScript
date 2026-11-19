@@ -14,8 +14,10 @@ set(SOURCES
     src/repl/repl.cpp
     src/lexer/lexer.cpp
     src/parser/parser.cpp
+    src/interpreter/interpreter.cpp
     src/types/number.cpp
     src/types/text.cpp
+    src/debug/ast_printer.cpp
 )
 
 add_executable(bagetscript ${SOURCES})
