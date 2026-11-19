@@ -47,9 +47,12 @@ Declaration Parser::parse_declaration()
     consume(TokenType::A_POUR_VALEUR);
 
     Token value_token = current_token();
-    TokenType expected_value_type = declaration.type == TokenType::TYPE_NOMBRE
-        ? TokenType::NOMBRE
-        : TokenType::TEXTE;
+    TokenType expected_value_type = TokenType::TEXTE;
+
+    if (declaration.type == TokenType::TYPE_NOMBRE)
+    {
+        expected_value_type = TokenType::NOMBRE;
+    }
 
     if (value_token.type != expected_value_type)
     {

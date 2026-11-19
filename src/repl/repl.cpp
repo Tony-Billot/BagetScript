@@ -62,9 +62,25 @@ void REPL::run()
 }
 
 
-void REPL::run(std::ifstream& file)
+void REPL::run(std::ifstream& file, bool debug)
 {
     std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+    if (debug)
+    {
+        std::vector<Token> tokens = lexer.to_tokens(source);
+        for (const Token& token : tokens)
+        {
+            std::cout << token.line << ':' << token.column << " " << lexer.token_type_to_string(token.type);
+            if (!token.valeur.empty()) {
+                std::cout << " \"" << token.valeur << '"';
+            }
+            std::cout << '\n';
+
+        }
+        return;
+    }
+
     Interpreter interpreter;
     execute(source, interpreter);
 }

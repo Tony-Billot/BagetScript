@@ -17,6 +17,7 @@ int main(int argc, char* argv[])
     REPL repl;
     if (argc > 1)
     {
+        bool debug = argc > 2 && std::string(argv[2]) == "--debug";
         std::ifstream file(argv[1]);
         std::string extension = argv[1];
         if (extension.find_last_of('.') != std::string::npos)
@@ -41,7 +42,7 @@ int main(int argc, char* argv[])
         }
         try
         {
-            repl.run(file);
+            repl.run(file, debug);
         }
         catch (const BagetScriptError& error)
         {

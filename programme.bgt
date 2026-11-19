@@ -1,1 +1,11 @@
-nombre entier 42;
+
+afficher(1000000);
+afficher(123456789);
+afficher(10000000000);
+afficher(0.000001);
+afficher(1234567.5);
+afficher(3.14159265358979);
+nombre grand = 1000000;
+nombre precis = 1234567.89;
+afficher(grand);
+afficher(precis);
