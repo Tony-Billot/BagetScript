@@ -1,9 +1,10 @@
 #include "lexer/lexer.hpp"
 #include <iostream>
 #include <cctype>
-#include <unordered_map>
+#include <map>
+#include "common/exceptions.hpp"
 
-static const std::unordered_map<char, TokenType> symboles = {
+static const std::map<char, TokenType> symboles = {
     {'=', TokenType::A_POUR_VALEUR},
     {'+', TokenType::PLUS},
     {'-', TokenType::MOINS},
@@ -14,144 +15,148 @@ static const std::unordered_map<char, TokenType> symboles = {
     {';', TokenType::POINT_VIRGULE}
 };
 
+static const std::map<std::string, TokenType> keywords = {
+    {"nombre", TokenType::TYPE_NOMBRE},
+    {"texte", TokenType::TYPE_TEXTE},
+    {"afficher", TokenType::AFFICHER}
+};
+
 std::vector<Token> Lexer::to_tokens(const std::string& source)
 {
     std::vector<Token> tokens;
-    std::string current_token;
-
-    bool in_a_string = false;
+    int position = 0;
     int line = 1;
     int column = 1;
-    int token_line = 1;
-    int token_column = 1;
 
-
-    for (char c : source)
+    /* 
+    =========================================================================
+    Functions used in the main loop
+    ========================================================================= 
+    */
+    auto is_end = [&]() -> bool
     {
-        if (current_token.empty())
-        {
-            token_line = line;
-            token_column = column;
-        }
-        if (c == '"')
-        {
-            if (in_a_string)
-            {
-                tokens.push_back({TokenType::TEXTE, current_token, token_line, token_column});
-                current_token.clear();
-            }
+        return position >= static_cast<int>(source.size());
+    };
 
-            in_a_string = !in_a_string;
-        }
-        else if (in_a_string)
-        {
-            current_token += c;
-        }
-        else if (c == '\n')
-        {
-            if (!current_token.empty())
-            {
-                Token token = lecture_token(current_token);
-                token.line = token_line;
-                token.column = token_column;
-                tokens.push_back(token);
-                current_token.clear();
-            }
+    auto peek = [&]() -> unsigned char
+    {
+        return static_cast<unsigned char>(source[position]);
+    };
 
+    auto advance = [&]() -> char
+    {
+        char current_char = source[position];
+        position++;
+
+        if (current_char == '\n')
+        {
             line++;
-            column = 0;
-        }
-        else if (std::isspace(c))
-        {
-            if (!current_token.empty())
-            {
-                Token token = lecture_token(current_token);
-                token.line = token_line;
-                token.column = token_column;
-                tokens.push_back(token);
-                current_token.clear();
-            }
-        }
-        else if (symboles.find(c) != symboles.end())
-        {
-            if (!current_token.empty())
-            {
-                Token token = lecture_token(current_token);
-                token.line = token_line;
-                token.column = token_column;
-                tokens.push_back(token);
-                current_token.clear();
-            }
-
-            tokens.push_back({symboles.at(c), std::string(1, c), line, column});
+            column = 1;
         }
         else
         {
-            current_token += c;
+            column++;
         }
 
-        column++;
+        return current_char;
+    };
+
+    auto is_letter = [](unsigned char c) -> bool
+    {
+        return std::isalpha(c);
+    };
+
+
+    // Loop which creates the tokens
+    while (!is_end())
+    {
+        unsigned char current_char = peek();
+
+        int start_line = line;
+        int start_column = column;
+
+        if (std::isspace(current_char))
+        {
+            advance();
+        }
+
+        else if (symboles.find(current_char) != symboles.end())
+        {
+            advance();
+            tokens.push_back({symboles.at(current_char), std::string(1, current_char), start_line, start_column});
+        }
+
+        else if (is_letter(current_char))
+        {
+            std::string word;
+
+            while (!is_end() && (is_letter(peek()) || std::isdigit(peek())))
+            {
+                word += advance();
+            }
+
+            auto keyword = keywords.find(word);
+            TokenType type = (keyword != keywords.end()) ? keyword->second : TokenType::IDENTIFIANT;
+
+            tokens.push_back({type, word, start_line, start_column});
+        }
+
+        else if (std::isdigit(current_char))
+        {
+            std::string nombre;
+            bool has_dot = false;
+
+            while (!is_end() && (std::isdigit(peek()) || (peek() == '.' && !has_dot)))
+            {
+                if (peek() == '.')
+                {
+                    has_dot = true;
+                }
+
+                nombre += advance();
+            }
+
+            tokens.push_back({TokenType::NOMBRE, nombre, start_line, start_column});
+        }
+
+        else if (current_char == '"')
+        {
+            advance();
+            std::string texte;
+
+            while (!is_end() && peek() != '"')
+            {
+                texte += advance();
+            }
+
+            if (is_end())
+            {
+                throw LexicalError("texte non fermé (guillemet manquant)", start_line, start_column);
+            }
+
+            advance();
+            tokens.push_back({TokenType::TEXTE, texte, start_line, start_column});
+        }
+
+        else
+        {
+            throw LexicalError("caractère inattendu '" + std::string(1, current_char) + "'", start_line, start_column);
+        }
     }
 
-    if (!current_token.empty())
-    {
-        Token token = lecture_token(current_token);
-        token.line = token_line;
-        token.column = token_column;
-        tokens.push_back(token);
-        current_token.clear();
-    }
+    tokens.push_back({TokenType::FIN_DE_FICHIER, "", line, column});
     return tokens;
 }
 
-Token Lexer::lecture_token(const std::string& token)
-{
-    static const std::unordered_map<std::string, TokenType> keywords = {
-        {"nombre", TokenType::TYPE_NOMBRE},
-        {"texte", TokenType::TYPE_TEXTE},
-        {"afficher", TokenType::AFFICHER}
-    };
 
-    std::unordered_map<std::string, TokenType>::const_iterator it = keywords.find(token);
 
-    if (it != keywords.end())
-    {
-        return {it->second, token, 0, 0};
-    }
+/* 
+=========================================================================
+DEBUG PART
+=========================================================================
+*/
 
-    bool has_dot = false;
-    bool has_digit = false;
-
-    for (char c : token)
-    {
-        if (c == '.')
-        {
-            if (has_dot)
-            {
-                return {TokenType::IDENTIFIANT, token, 0, 0};
-            }
-
-            has_dot = true;
-        }
-        else if (!std::isdigit(c))
-        {
-            return {TokenType::IDENTIFIANT, token, 0, 0};
-        }
-        else
-        {
-            has_digit = true;
-        }
-    }
-
-    if (has_digit)
-    {
-        return {TokenType::NOMBRE, token, 0, 0};
-    }
-
-    return {TokenType::IDENTIFIANT, token, 0, 0};
-}
-
-// DEBUG
+//Debug function to print the tokens
 std::string Lexer::token_type_to_string(TokenType type)
 {
     switch (type)
