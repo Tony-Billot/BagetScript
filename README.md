@@ -27,6 +27,9 @@ nombre b = 8;
 
 afficher(a + b);
 
+// Sortie : 13
+```
+
 ## 🧩 VS Code extension
 A VS Code extension is included in the `vscode-extension` folder. It recognizes `.bgt` files, adds syntax highlighting and provides snippets (type `afficher`, `nombre` or `texte`, then press Tab).
 
