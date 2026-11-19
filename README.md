@@ -26,3 +26,16 @@ nombre a = 5;
 nombre b = 8;
 
 afficher(a + b);
+
+## 🧩 VS Code extension
+A VS Code extension is included in the `vscode-extension` folder. It recognizes `.bgt` files, adds syntax highlighting and provides snippets (type `afficher`, `nombre` or `texte`, then press Tab).
+
+### Installation
+
+1. Download or clone this repository.
+2. Copy the `vscode-extension` folder into your VS Code extensions folder, and rename it `bagetscript`:
+   - **Windows:** `C:\Users\<your name>\.vscode\extensions\`
+   - **macOS / Linux:** `~/.vscode/extensions/`
+3. Restart VS Code.
+
+Open any `.bgt` file: "BagetScript" should appear in the bottom-right corner of VS Code.
