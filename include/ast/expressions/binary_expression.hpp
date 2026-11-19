@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../expression.hpp"
-#include "../../lexer/token.hpp"
+#include "common/token.hpp"
 #include <memory>
 
 struct BinaryExpression : Expression

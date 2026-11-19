@@ -5,6 +5,7 @@
 #include "common/exceptions.hpp"
 #include <iostream>
 #include <memory>
+#include "ast/expressions/binary_expression.hpp"
 
 
 Parser::Parser(std::vector<Token> tokens)
@@ -45,41 +46,8 @@ Declaration Parser::parse_declaration()
     declaration.type = consume(current_token().type).type;
     declaration.name = consume(TokenType::IDENTIFIANT).valeur;
     consume(TokenType::A_POUR_VALEUR);
-
-    Token value_token = current_token();
-    TokenType expected_value_type = TokenType::TEXTE;
-
-    if (declaration.type == TokenType::TYPE_NOMBRE)
-    {
-        expected_value_type = TokenType::NOMBRE;
-    }
-
-    if (value_token.type != expected_value_type)
-    {
-        throw SyntaxError("valeur de type " + token_type_to_string(value_token.type) + " incompatible avec " + token_type_to_string(declaration.type), value_token.line, value_token.column);
-    }
-
-    if (declaration.type == TokenType::TYPE_NOMBRE)
-    {
-        auto value = std::make_unique<NumberExpression>();
-        Token token = consume(TokenType::NOMBRE);
-        value->value = std::stod(token.valeur);
-        value->line = token.line;
-        value->column = token.column;
-        declaration.value = std::move(value);
-    }
-    else
-    {
-        auto value = std::make_unique<TextExpression>();
-        Token token = consume(TokenType::TEXTE);
-        value->value = token.valeur;
-        value->line = token.line;
-        value->column = token.column;
-        declaration.value = std::move(value);
-    }
-
+    declaration.value = parse_expression();
     consume(TokenType::POINT_VIRGULE);
-
     return declaration;
 }
 
@@ -89,44 +57,107 @@ PrintStatement Parser::parse_print_statement()
 
     consume(TokenType::AFFICHER);
     consume(TokenType::PARENTHESE_GAUCHE);
-
-    if (current_token().type == TokenType::TEXTE)
-    {
-        auto value = std::make_unique<TextExpression>();
-        Token token = consume(TokenType::TEXTE);
-        value->value = token.valeur;
-        value->line = token.line;
-        value->column = token.column;
-        statement.expression = std::move(value);
-    }
-    else if (current_token().type == TokenType::NOMBRE)
-    {
-        auto value = std::make_unique<NumberExpression>();
-        Token token = consume(TokenType::NOMBRE);
-        value->value = std::stod(token.valeur);
-        value->line = token.line;
-        value->column = token.column;
-        statement.expression = std::move(value);
-    }
-    else if (current_token().type == TokenType::IDENTIFIANT)
-    {
-        auto value = std::make_unique<IdentifierExpression>();
-        Token token = consume(TokenType::IDENTIFIANT);
-        value->name = token.valeur;
-        value->line = token.line;
-        value->column = token.column;
-        statement.expression = std::move(value);
-    }
-    else
-    {
-        throw SyntaxError("texte, nombre ou identifiant attendu", current_token().line, current_token().column);
-    }
-
+    statement.expression = parse_expression();
     consume(TokenType::PARENTHESE_DROITE);
     consume(TokenType::POINT_VIRGULE);
 
     return statement;
 }
+
+std::unique_ptr<Expression> Parser::operate(std::unique_ptr<Expression> left, Token operator_token, std::unique_ptr<Expression> right)
+{
+    auto operation = std::make_unique<BinaryExpression>();
+    operation->left = std::move(left);
+    operation->operation = operator_token.type;
+    operation->right = std::move(right);
+    operation->line = operator_token.line;
+    operation->column = operator_token.column;
+    return operation;
+}
+
+std::unique_ptr<Expression> Parser::parse_expression()
+{
+    return parse_addition();
+}
+
+std::unique_ptr<Expression> Parser::parse_addition()
+{
+    auto result = parse_multiplication();
+
+    while (is_current(TokenType::PLUS) || is_current(TokenType::MOINS))
+    {
+        Token operator_token = consume(current_token().type);
+        auto right_side = parse_multiplication();
+        result = operate(std::move(result), operator_token, std::move(right_side));
+    }
+
+    return result;
+}
+
+std::unique_ptr<Expression> Parser::parse_multiplication()
+{
+    auto result = parse_value();
+
+    while (is_current(TokenType::FOIS) || is_current(TokenType::DIVISE))
+    {
+        Token operator_token = consume(current_token().type);
+        auto right_side = parse_value();
+        result = operate(std::move(result), operator_token, std::move(right_side));
+    }
+
+    return result;
+}
+
+std::unique_ptr<Expression> Parser::parse_value()
+{
+    Token token = current_token();
+
+    if (is_current(TokenType::NOMBRE))
+    {
+        consume(TokenType::NOMBRE);
+        auto number = std::make_unique<NumberExpression>();
+        number->value = std::stod(token.valeur);
+        number->line = token.line;
+        number->column = token.column;
+        return number;
+    }
+
+    if (is_current(TokenType::TEXTE))
+    {
+        consume(TokenType::TEXTE);
+        auto text = std::make_unique<TextExpression>();
+        text->value = token.valeur;
+        text->line = token.line;
+        text->column = token.column;
+        return text;
+    }
+
+    if (is_current(TokenType::IDENTIFIANT))
+    {
+        consume(TokenType::IDENTIFIANT);
+        auto variable = std::make_unique<IdentifierExpression>();
+        variable->name = token.valeur;
+        variable->line = token.line;
+        variable->column = token.column;
+        return variable;
+    }
+
+    if (is_current(TokenType::PARENTHESE_GAUCHE))
+    {
+        consume(TokenType::PARENTHESE_GAUCHE);
+        auto inside = parse_expression();
+        consume(TokenType::PARENTHESE_DROITE);
+        return inside;
+    }
+
+    throw SyntaxError("nombre, texte, variable ou parenthèse attendu", token.line, token.column);
+}
+
+bool Parser::is_current(TokenType type)
+{
+    return current_token().type == type;
+}
+
 
 std::string Parser::token_type_to_string(TokenType type)
 {
