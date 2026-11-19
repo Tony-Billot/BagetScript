@@ -1,22 +1,43 @@
 #include "repl/repl.hpp"
 #include "parser/parser.hpp"
 #include "interpreter/interpreter.hpp"
+#include "common/exceptions.hpp"
 
-#include <windows.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <iterator>
 
+void REPL::execute(const std::string& source, Interpreter& interpreter)
+{
+    std::vector<Token> tokens = lexer.to_tokens(source);
+    Parser parser(tokens);
+
+    while (parser.has_more_tokens())
+    {
+        if (parser.current_token().type == TokenType::AFFICHER)
+        {
+            PrintStatement statement = parser.parse_print_statement();
+            interpreter.execute(statement);
+        }
+        else if (parser.current_token().type == TokenType::TYPE_NOMBRE || parser.current_token().type == TokenType::TYPE_TEXTE)
+        {
+            Declaration declaration = parser.parse_declaration();
+            interpreter.execute(declaration);
+        }
+        else
+        {
+            throw SyntaxError("déclaration ou instruction afficher attendue", parser.current_token().line, parser.current_token().column);
+        }
+    }
+}
 
 void REPL::run()
 {
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
-
     std::cout << "BagetScript v0.1\n";
     std::cout << "Tapez 'quitter' pour fermer cette fenêtre.\n\n";
 
+    Interpreter interpreter;
     std::string input;
 
     while (true)
@@ -29,48 +50,21 @@ void REPL::run()
         if (input == "quitter")
             break;
 
-        std::vector<Token> tokens = lexer.to_tokens(input);
+        try
+        {
+            execute(input, interpreter);
+        }
+        catch (const BagetScriptError& error)
+        {
+            std::cerr << error.line << ':' << error.column << ": erreur : " << error.what() << '\n';
+        }
     }
 }
 
 
 void REPL::run(std::ifstream& file)
 {
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
-
     std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    std::vector<Token> tokens = lexer.to_tokens(source);
-
-    if (tokens.empty()) {
-        return;
-    }
-
-    try
-    {
-        Parser parser(tokens);
-        Interpreter interpreter;
-
-        while (parser.has_more_tokens())
-        {
-            if (parser.current_token().type == TokenType::AFFICHER)
-            {
-                PrintStatement statement = parser.parse_print_statement();
-                interpreter.execute(statement);
-            }
-            else if (parser.current_token().type == TokenType::TYPE_NOMBRE || parser.current_token().type == TokenType::TYPE_TEXTE)
-            {
-                Declaration declaration = parser.parse_declaration();
-                interpreter.execute(declaration);
-            }
-            else
-            {
-                throw std::runtime_error("Erreur : déclaration ou instruction afficher attendue ligne " + std::to_string(parser.current_token().line) + ", colonne " + std::to_string(parser.current_token().column) + ".");
-            }
-        }
-    }
-    catch (const std::runtime_error& error)
-    {
-        std::cout << error.what() << '\n';
-    }
+    Interpreter interpreter;
+    execute(source, interpreter);
 }

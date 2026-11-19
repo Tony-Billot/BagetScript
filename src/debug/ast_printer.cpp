@@ -14,15 +14,19 @@ void ASTPrinter::print(const Declaration& declaration)
 
     if (declaration.type == TokenType::TYPE_NOMBRE)
     {
-        NumberExpression* number = static_cast<NumberExpression*>(declaration.value.get());
-        std::cout << "    └── NumberExpression\n";
-        std::cout << "        └── value: " << number->value << '\n';
+        if (auto* number = dynamic_cast<NumberExpression*>(declaration.value.get()))
+        {
+            std::cout << "    └── NumberExpression\n";
+            std::cout << "        └── value: " << number->value << '\n';
+        }
     }
     else
     {
-        TextExpression* text = static_cast<TextExpression*>(declaration.value.get());
-        std::cout << "    └── TextExpression\n";
-        std::cout << "        └── value: " << text->value << '\n';
+        if (auto* text = dynamic_cast<TextExpression*>(declaration.value.get()))
+        {
+            std::cout << "    └── TextExpression\n";
+            std::cout << "        └── value: " << text->value << '\n';
+        }
     }
 }
 

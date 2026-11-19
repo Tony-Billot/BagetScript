@@ -63,7 +63,7 @@ std::vector<Token> Lexer::to_tokens(const std::string& source)
 
     auto is_letter = [](unsigned char c) -> bool
     {
-        return std::isalpha(c);
+        return std::isalpha(c) || c == '_' || c >= 128;
     };
 
 

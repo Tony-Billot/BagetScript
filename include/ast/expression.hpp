@@ -4,5 +4,6 @@
 
 struct Expression : ASTNode
 {
-    
+    int line = 0;
+    int column = 0;
 };

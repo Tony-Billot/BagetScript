@@ -1,9 +1,19 @@
 #include "repl/repl.hpp"
+#include "common/exceptions.hpp"
 #include <iostream>
 #include <fstream>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 int main(int argc, char* argv[])
 {
+#ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+#endif
+
     REPL repl;
     if (argc > 1)
     {
@@ -29,7 +39,20 @@ int main(int argc, char* argv[])
             std::cerr << "Impossible d'ouvrir le fichier : " << argv[1] << '\n';
             return 1;
         }
-        repl.run(file);
+        try
+        {
+            repl.run(file);
+        }
+        catch (const BagetScriptError& error)
+        {
+            std::cerr << argv[1] << ':' << error.line << ':' << error.column << ": erreur : " << error.what() << '\n';
+            return 1;
+        }
+        catch (const std::exception& error)
+        {
+            std::cerr << "Erreur interne : " << error.what() << '\n';
+            return 2;
+        }
         return 0;
     }
 

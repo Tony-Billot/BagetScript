@@ -2,9 +2,9 @@
 #include "ast/expressions/identifier_expression.hpp"
 #include "ast/expressions/number_expression.hpp"
 #include "ast/expressions/text_expression.hpp"
+#include "common/exceptions.hpp"
 
 #include <iostream>
-#include <stdexcept>
 
 Interpreter::Value Interpreter::evaluate(const Expression& expression)
 {
@@ -19,11 +19,11 @@ Interpreter::Value Interpreter::evaluate(const Expression& expression)
     {
         auto variable = variables.find(identifier->name);
         if (variable == variables.end())
-            throw std::runtime_error("Erreur : variable inconnue '" + identifier->name + "'.");
+            throw RuntimeError("variable inconnue '" + identifier->name + "'", identifier->line, identifier->column);
         return variable->second;
     }
 
-    throw std::runtime_error("Erreur : expression inconnue.");
+    throw RuntimeError("expression inconnue", expression.line, expression.column);
 }
 
 void Interpreter::execute(const Declaration& declaration)

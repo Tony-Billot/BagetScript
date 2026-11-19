@@ -13,3 +13,4 @@ public:
 
 class LexicalError : public BagetScriptError { using BagetScriptError::BagetScriptError; };
 class SyntaxError  : public BagetScriptError { using BagetScriptError::BagetScriptError; };
+class RuntimeError : public BagetScriptError { using BagetScriptError::BagetScriptError; };
