@@ -86,6 +86,27 @@ std::vector<Token> Lexer::to_tokens(const std::string& source)
             advance();
         }
 
+        else if (current_char == '='
+            && position + 1 < static_cast<int>(source.size())
+            && source[position + 1] == '=')
+        {
+            advance();
+            advance();
+            tokens.push_back({TokenType::EST_EGAL_A, "==", start_line, start_column});
+        }
+
+        else if (current_char == '<')
+        {
+            advance();
+            tokens.push_back({TokenType::EST_INFERIEUR_A, "<", start_line, start_column});
+        }
+
+        else if (current_char == '>')
+        {
+            advance();
+            tokens.push_back({TokenType::EST_SUPERIEUR_A, ">", start_line, start_column});
+        }
+
         else if (symboles.find(current_char) != symboles.end())
         {
             advance();

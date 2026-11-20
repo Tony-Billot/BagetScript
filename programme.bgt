@@ -1,2 +1,1 @@
-booléen a = vrai;
-afficher(a et non faux);
+afficher("1" < "2");

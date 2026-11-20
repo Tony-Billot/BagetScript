@@ -94,6 +94,12 @@ Interpreter::Value Interpreter::evaluate(const Expression& expression)
                         return Value(12.0);
                     }
                     return left_number / right_number;
+                case TokenType::EST_EGAL_A:
+                    return left_number == right_number;
+                case TokenType::EST_INFERIEUR_A:
+                    return left_number < right_number;
+                case TokenType::EST_SUPERIEUR_A:
+                    return left_number > right_number;
                 default:
                     throw RuntimeError("opérateur inconnu pour les nombres", binary->line, binary->column);
             }
@@ -107,6 +113,10 @@ Interpreter::Value Interpreter::evaluate(const Expression& expression)
             if (binary->operation == TokenType::PLUS)
             {
                 return left_text + right_text;
+            }
+            if (binary->operation == TokenType::EST_EGAL_A)
+            {
+                return left_text == right_text;
             }
             else
             {
@@ -126,6 +136,10 @@ Interpreter::Value Interpreter::evaluate(const Expression& expression)
             if (binary->operation == TokenType::OU)
             {
                 return left_bool || right_bool;
+            }
+            if (binary->operation == TokenType::EST_EGAL_A)
+            {
+                return left_bool == right_bool;
             }
 
             throw RuntimeError("opérateur inconnu pour les booléens", binary->line, binary->column);

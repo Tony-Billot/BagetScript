@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
             return 1;
         }
 
-        if (!file.is_open())
+        if (!file.is_open()) 
         {
             std::cerr << "Impossible d'ouvrir le fichier : " << argv[1] << '\n';
             return 1;

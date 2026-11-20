@@ -113,11 +113,27 @@ std::unique_ptr<Expression> Parser::parse_logical_or()
 
 std::unique_ptr<Expression> Parser::parse_logical_and()
 {
-    auto result = parse_addition();
+    auto result = parse_equality();
 
     while (is_current(TokenType::ET))
     {
         Token operator_token = consume(TokenType::ET);
+        auto right_side = parse_equality();
+        result = operate(std::move(result), operator_token, std::move(right_side));
+    }
+
+    return result;
+}
+
+std::unique_ptr<Expression> Parser::parse_equality()
+{
+    auto result = parse_addition();
+
+    while (is_current(TokenType::EST_EGAL_A)
+        || is_current(TokenType::EST_INFERIEUR_A)
+        || is_current(TokenType::EST_SUPERIEUR_A))
+    {
+        Token operator_token = consume(current_token().type);
         auto right_side = parse_addition();
         result = operate(std::move(result), operator_token, std::move(right_side));
     }
@@ -268,6 +284,9 @@ std::string Parser::token_type_to_string(TokenType type)
         case TokenType::MOINS: return "'-'";
         case TokenType::FOIS: return "'*'";
         case TokenType::DIVISE: return "'/'";
+        case TokenType::EST_EGAL_A: return "'=='";
+        case TokenType::EST_INFERIEUR_A: return "'<'";
+        case TokenType::EST_SUPERIEUR_A: return "'>'";
         case TokenType::NON: return "'non'";
         case TokenType::ET: return "'et'";
         case TokenType::OU: return "'ou'";

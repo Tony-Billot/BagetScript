@@ -18,6 +18,7 @@ class Parser
         std::unique_ptr<Expression> parse_expression();
         std::unique_ptr<Expression> parse_logical_or();
         std::unique_ptr<Expression> parse_logical_and();
+        std::unique_ptr<Expression> parse_equality();
         std::unique_ptr<Expression> parse_addition();
         std::unique_ptr<Expression> parse_multiplication();
         std::unique_ptr<Expression> parse_value();
