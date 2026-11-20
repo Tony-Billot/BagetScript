@@ -4,5 +4,5 @@
 
 struct Statement : ASTNode
 {
-    
+    virtual ~Statement() = default;
 };

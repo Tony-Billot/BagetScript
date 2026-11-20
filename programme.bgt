@@ -1,1 +1,13 @@
-afficher("1" < "2");
+si (faux) {
+    afficher(1);
+} sinon si (vrai) {
+    afficher(2);
+} sinon {
+    afficher(3);
+}
+
+si (1) {
+    afficher(4);
+} sinon {
+    afficher(5);
+}

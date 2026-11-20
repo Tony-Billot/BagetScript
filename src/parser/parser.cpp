@@ -81,6 +81,74 @@ Assignment Parser::parse_assignment()
     return assignment;
 }
 
+std::vector<std::unique_ptr<Statement>> Parser::parse_block()
+{
+    consume(TokenType::ACCOLADE_GAUCHE);
+    std::vector<std::unique_ptr<Statement>> statements;
+
+    while (!is_current(TokenType::ACCOLADE_DROITE))
+    {
+        if (is_current(TokenType::AFFICHER))
+        {
+            statements.push_back(std::make_unique<PrintStatement>(parse_print_statement()));
+        }
+        else if (is_current(TokenType::TYPE_NOMBRE) || is_current(TokenType::TYPE_TEXTE) || is_current(TokenType::TYPE_BOOLEEN))
+        {
+            statements.push_back(std::make_unique<Declaration>(parse_declaration()));
+        }
+        else if (is_current(TokenType::IDENTIFIANT))
+        {
+            statements.push_back(std::make_unique<Assignment>(parse_assignment()));
+        }
+        else if (is_current(TokenType::SI))
+        {
+            statements.push_back(std::make_unique<IfStatement>(parse_if_statement()));
+        }
+        else
+        {
+            throw SyntaxError("instruction attendue", current_token().line, current_token().column);
+        }
+    }
+
+    consume(TokenType::ACCOLADE_DROITE);
+    return statements;
+}
+
+IfStatement Parser::parse_if_statement()
+{
+    IfStatement statement;
+
+    consume(TokenType::SI);
+    consume(TokenType::PARENTHESE_GAUCHE);
+    statement.condition = parse_expression();
+    consume(TokenType::PARENTHESE_DROITE);
+    statement.statements = parse_block();
+
+    while (is_current(TokenType::SINON))
+    {
+        consume(TokenType::SINON);
+
+        if (is_current(TokenType::SI))
+        {
+            consume(TokenType::SI);
+            consume(TokenType::PARENTHESE_GAUCHE);
+
+            ElseIfBranch branch;
+            branch.condition = parse_expression();
+            consume(TokenType::PARENTHESE_DROITE);
+            branch.statements = parse_block();
+            statement.else_if_branches.push_back(std::move(branch));
+        }
+        else
+        {
+            statement.else_statements = parse_block();
+            break;
+        }
+    }
+
+    return statement;
+}
+
 std::unique_ptr<Expression> Parser::operate(std::unique_ptr<Expression> left, Token operator_token, std::unique_ptr<Expression> right)
 {
     auto operation = std::make_unique<BinaryExpression>();
@@ -292,6 +360,8 @@ std::string Parser::token_type_to_string(TokenType type)
         case TokenType::OU: return "'ou'";
         case TokenType::PARENTHESE_GAUCHE: return "'('";
         case TokenType::PARENTHESE_DROITE: return "')'";
+        case TokenType::ACCOLADE_GAUCHE: return "'{'";
+        case TokenType::ACCOLADE_DROITE: return "'}'";
         case TokenType::POINT_VIRGULE: return "';'";
         case TokenType::AFFICHER: return "'afficher'";
         case TokenType::FIN_DE_FICHIER: return "fin du fichier";

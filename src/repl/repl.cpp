@@ -20,6 +20,11 @@ void REPL::execute(const std::string& source, Interpreter& interpreter)
             PrintStatement statement = parser.parse_print_statement();
             interpreter.execute(statement);
         }
+        else if (parser.current_token().type == TokenType::SI)
+        {
+            IfStatement statement = parser.parse_if_statement();
+            interpreter.execute(statement);
+        }
         else if (parser.current_token().type == TokenType::TYPE_NOMBRE || parser.current_token().type == TokenType::TYPE_TEXTE || parser.current_token().type == TokenType::TYPE_BOOLEEN)
         {
             Declaration declaration = parser.parse_declaration();

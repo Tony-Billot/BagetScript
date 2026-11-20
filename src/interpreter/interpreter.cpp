@@ -8,6 +8,7 @@
 #include <iostream>
 #include "ast/expressions/binary_expression.hpp"
 #include "ast/expressions/unary_expression.hpp"
+#include "ast/statements/if_statement.hpp"
 #include <algorithm>
 
 
@@ -187,6 +188,51 @@ void Interpreter::execute(const Assignment& assignment)
     }
 
     variable->second = value;
+}
+
+void Interpreter::execute(const IfStatement& statement)
+{
+    auto execute_block = [this](const std::vector<std::unique_ptr<Statement>>& statements)
+    {
+        for (const auto& item : statements)
+        {
+            if (const auto* declaration = dynamic_cast<const Declaration*>(item.get()))
+            {
+                execute(*declaration);
+            }
+            else if (const auto* print = dynamic_cast<const PrintStatement*>(item.get()))
+            {
+                execute(*print);
+            }
+            else if (const auto* assignment = dynamic_cast<const Assignment*>(item.get()))
+            {
+                execute(*assignment);
+            }
+            else if (const auto* conditional = dynamic_cast<const IfStatement*>(item.get()))
+            {
+                execute(*conditional);
+            }
+        }
+    };
+
+    Value condition = evaluate(*statement.condition);
+    if (std::holds_alternative<bool>(condition) && std::get<bool>(condition))
+    {
+        execute_block(statement.statements);
+        return;
+    }
+
+    for (const ElseIfBranch& branch : statement.else_if_branches)
+    {
+        Value branch_condition = evaluate(*branch.condition);
+        if (std::holds_alternative<bool>(branch_condition) && std::get<bool>(branch_condition))
+        {
+            execute_block(branch.statements);
+            return;
+        }
+    }
+
+    execute_block(statement.else_statements);
 }
 
 void Interpreter::execute(const PrintStatement& statement)

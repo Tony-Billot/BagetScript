@@ -12,6 +12,8 @@ static const std::map<char, TokenType> symboles = {
     {'/', TokenType::DIVISE},
     {'(', TokenType::PARENTHESE_GAUCHE},
     {')', TokenType::PARENTHESE_DROITE},
+    {'{', TokenType::ACCOLADE_GAUCHE},
+    {'}', TokenType::ACCOLADE_DROITE},
     {';', TokenType::POINT_VIRGULE}
 };
 
@@ -24,7 +26,9 @@ static const std::map<std::string, TokenType> keywords = {
     {"non", TokenType::NON},
     {"et", TokenType::ET},
     {"ou", TokenType::OU},
-    {"afficher", TokenType::AFFICHER}
+    {"afficher", TokenType::AFFICHER},
+    {"si", TokenType::SI},
+    {"sinon", TokenType::SINON}
 };
 
 std::vector<Token> Lexer::to_tokens(const std::string& source)
@@ -203,8 +207,13 @@ std::string Lexer::token_type_to_string(TokenType type)
         case TokenType::DIVISE: return "DIVISE";
         case TokenType::PARENTHESE_GAUCHE: return "PARENTHESE_GAUCHE";
         case TokenType::PARENTHESE_DROITE: return "PARENTHESE_DROITE";
+        case TokenType::ACCOLADE_GAUCHE: return "ACCOLADE_GAUCHE";
+        case TokenType::ACCOLADE_DROITE: return "ACCOLADE_DROITE";
         case TokenType::POINT_VIRGULE: return "POINT_VIRGULE";
         case TokenType::AFFICHER: return "AFFICHER";
+        case TokenType::SI: return "SI";
+        case TokenType::SINON: return "SINON";
+        case TokenType::SINON_SI: return "SINON_SI";
         case TokenType::EST_EGAL_A: return "EST_EGAL_A";
         case TokenType::EST_INFERIEUR_A: return "EST_INFERIEUR_A";
         case TokenType::EST_SUPERIEUR_A: return "EST_SUPERIEUR_A";

@@ -27,7 +27,14 @@ enum class TokenType {
     // Délimiteurs, parenthèses, etc.
     PARENTHESE_GAUCHE,
     PARENTHESE_DROITE,
+    ACCOLADE_GAUCHE,
+    ACCOLADE_DROITE,
     POINT_VIRGULE,
+
+    // Instructions conditionnelles
+    SI,
+    SINON,
+    SINON_SI,
 
     // Instructions d'affichage
     AFFICHER,

@@ -2,6 +2,7 @@
 #include "ast/statements/declaration.hpp"
 #include "ast/statements/print_statement.hpp"
 #include "ast/statements/assignment.hpp"
+#include "ast/statements/if_statement.hpp"
 
 #include <vector>
 
@@ -23,6 +24,7 @@ class Parser
         std::unique_ptr<Expression> parse_multiplication();
         std::unique_ptr<Expression> parse_value();
         std::unique_ptr<Expression> parse_unary();
+        std::vector<std::unique_ptr<Statement>> parse_block();
     public:
         Parser(std::vector<Token> tokens);
         Token current_token();
@@ -31,4 +33,5 @@ class Parser
         Declaration parse_declaration();
         PrintStatement parse_print_statement();
         Assignment parse_assignment();
+        IfStatement parse_if_statement();
 };
