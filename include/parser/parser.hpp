@@ -1,6 +1,7 @@
 #include "common/token.hpp"
 #include "ast/statements/declaration.hpp"
 #include "ast/statements/print_statement.hpp"
+#include "ast/statements/assignment.hpp"
 
 #include <vector>
 
@@ -25,4 +26,5 @@ class Parser
         bool has_more_tokens() const;
         Declaration parse_declaration();
         PrintStatement parse_print_statement();
+        Assignment parse_assignment();
 };

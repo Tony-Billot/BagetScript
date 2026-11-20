@@ -25,6 +25,11 @@ void REPL::execute(const std::string& source, Interpreter& interpreter)
             Declaration declaration = parser.parse_declaration();
             interpreter.execute(declaration);
         }
+        else if (parser.current_token().type == TokenType::IDENTIFIANT)
+        {
+            Assignment assignment = parser.parse_assignment();
+            interpreter.execute(assignment);
+        }
         else
         {
             throw SyntaxError("déclaration ou instruction afficher attendue", parser.current_token().line, parser.current_token().column);

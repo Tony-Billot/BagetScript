@@ -65,6 +65,17 @@ PrintStatement Parser::parse_print_statement()
     return statement;
 }
 
+Assignment Parser::parse_assignment()
+{
+    Assignment assignment;
+
+    assignment.name = consume(TokenType::IDENTIFIANT).valeur;
+    consume(TokenType::A_POUR_VALEUR);
+    assignment.value = parse_expression();
+    consume(TokenType::POINT_VIRGULE);
+    return assignment;
+}
+
 std::unique_ptr<Expression> Parser::operate(std::unique_ptr<Expression> left, Token operator_token, std::unique_ptr<Expression> right)
 {
     auto operation = std::make_unique<BinaryExpression>();

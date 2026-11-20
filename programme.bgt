@@ -1,2 +1,0 @@
-nombre n = 2 + 3;
-afficher(n);

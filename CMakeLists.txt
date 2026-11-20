@@ -5,7 +5,11 @@ project(BagetScript VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_compile_options(-finput-charset=UTF-8 -fexec-charset=UTF-8)
+if(MSVC)
+    add_compile_options(/utf-8)
+else()
+    add_compile_options(-finput-charset=UTF-8 -fexec-charset=UTF-8)
+endif()
 
 include_directories(include)
 

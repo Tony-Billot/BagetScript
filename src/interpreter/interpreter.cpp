@@ -119,6 +119,23 @@ void Interpreter::execute(const Declaration& declaration)
     variables[declaration.name] = evaluate(*declaration.value);
 }
 
+void Interpreter::execute(const Assignment& assignment)
+{
+    auto variable = variables.find(assignment.name);
+    if (variable == variables.end())
+    {
+        throw RuntimeError("variable inconnue '" + assignment.name + "'", assignment.value->line, assignment.value->column);
+    }
+
+    Value value = evaluate(*assignment.value);
+    if (std::holds_alternative<double>(variable->second) != std::holds_alternative<double>(value))
+    {
+        throw RuntimeError("type de valeur incompatible pour la variable '" + assignment.name + "'", assignment.value->line, assignment.value->column);
+    }
+
+    variable->second = value;
+}
+
 void Interpreter::execute(const PrintStatement& statement)
 {
     Value value = evaluate(*statement.expression);
