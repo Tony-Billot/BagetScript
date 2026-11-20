@@ -42,7 +42,11 @@ Declaration Parser::parse_declaration()
 
     if (current_token().type != TokenType::TYPE_NOMBRE && current_token().type != TokenType::TYPE_TEXTE && current_token().type != TokenType::TYPE_BOOLEEN)
     {
-        throw SyntaxError("type nombre, texte ou booleen attendu", current_token().line, current_token().column);
+        if (current_token().type == TokenType::IDENTIFIANT)
+        {
+            throw SyntaxError("type '" + current_token().valeur + "' non reconnu", current_token().line, current_token().column);
+        }
+        throw SyntaxError("type nombre, texte ou booléen attendu", current_token().line, current_token().column);
     }
 
     declaration.type = consume(current_token().type).type;
@@ -90,7 +94,35 @@ std::unique_ptr<Expression> Parser::operate(std::unique_ptr<Expression> left, To
 
 std::unique_ptr<Expression> Parser::parse_expression()
 {
-    return parse_addition();
+    return parse_logical_or();
+}
+
+std::unique_ptr<Expression> Parser::parse_logical_or()
+{
+    auto result = parse_logical_and();
+
+    while (is_current(TokenType::OU))
+    {
+        Token operator_token = consume(TokenType::OU);
+        auto right_side = parse_logical_and();
+        result = operate(std::move(result), operator_token, std::move(right_side));
+    }
+
+    return result;
+}
+
+std::unique_ptr<Expression> Parser::parse_logical_and()
+{
+    auto result = parse_addition();
+
+    while (is_current(TokenType::ET))
+    {
+        Token operator_token = consume(TokenType::ET);
+        auto right_side = parse_addition();
+        result = operate(std::move(result), operator_token, std::move(right_side));
+    }
+
+    return result;
 }
 
 std::unique_ptr<Expression> Parser::parse_addition()
@@ -155,6 +187,19 @@ std::unique_ptr<Expression> Parser::parse_value()
         return boolean;
     }
 
+    if (is_current(TokenType::NON))
+    {
+        Token operator_token = consume(TokenType::NON);
+
+        auto non = std::make_unique<UnaryExpression>();
+        non->operation = operator_token.type;
+        non->value = parse_unary();
+        non->line = operator_token.line;
+        non->column = operator_token.column;
+
+        return non;
+    }
+
     if (is_current(TokenType::IDENTIFIANT))
     {
         consume(TokenType::IDENTIFIANT);
@@ -198,6 +243,13 @@ bool Parser::is_current(TokenType type)
     return current_token().type == type;
 }
 
+bool Parser::has_assignment_syntax()
+{
+    return position + 1 < static_cast<int>(tokens.size())
+        && tokens[position].type == TokenType::IDENTIFIANT
+        && tokens[position + 1].type == TokenType::A_POUR_VALEUR;
+}
+
 
 std::string Parser::token_type_to_string(TokenType type)
 {
@@ -205,7 +257,7 @@ std::string Parser::token_type_to_string(TokenType type)
     {
         case TokenType::TYPE_NOMBRE: return "type nombre";
         case TokenType::TYPE_TEXTE: return "type texte";
-        case TokenType::TYPE_BOOLEEN: return "type booleen";
+        case TokenType::TYPE_BOOLEEN: return "type booléen";
         case TokenType::NOMBRE: return "nombre";
         case TokenType::TEXTE: return "texte";
         case TokenType::VRAI: return "vrai";
@@ -216,6 +268,9 @@ std::string Parser::token_type_to_string(TokenType type)
         case TokenType::MOINS: return "'-'";
         case TokenType::FOIS: return "'*'";
         case TokenType::DIVISE: return "'/'";
+        case TokenType::NON: return "'non'";
+        case TokenType::ET: return "'et'";
+        case TokenType::OU: return "'ou'";
         case TokenType::PARENTHESE_GAUCHE: return "'('";
         case TokenType::PARENTHESE_DROITE: return "')'";
         case TokenType::POINT_VIRGULE: return "';'";

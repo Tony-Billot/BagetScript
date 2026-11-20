@@ -44,6 +44,20 @@ Interpreter::Value Interpreter::evaluate(const Expression& expression)
             return -std::get<double>(value);
         }
 
+        if (unary->operation == TokenType::NON)
+        {
+            if (!std::holds_alternative<bool>(value))
+            {
+                throw RuntimeError(
+                    "l'opérateur 'non' attend un booléen",
+                    unary->line,
+                    unary->column
+                );
+            }
+
+            return !std::get<bool>(value);
+        }
+
         throw RuntimeError("opérateur unaire inconnu", unary->line, unary->column);
     }
 
@@ -100,6 +114,23 @@ Interpreter::Value Interpreter::evaluate(const Expression& expression)
             }
         }
 
+        if (std::holds_alternative<bool>(left_value) && std::holds_alternative<bool>(right_value))
+        {
+            bool left_bool = std::get<bool>(left_value);
+            bool right_bool = std::get<bool>(right_value);
+
+            if (binary->operation == TokenType::ET)
+            {
+                return left_bool && right_bool;
+            }
+            if (binary->operation == TokenType::OU)
+            {
+                return left_bool || right_bool;
+            }
+
+            throw RuntimeError("opérateur inconnu pour les booléens", binary->line, binary->column);
+        }
+
         throw RuntimeError("opérandes incompatibles pour l'opération binaire", binary->line, binary->column);
     }
 
@@ -118,10 +149,7 @@ static std::string format_number(double value)
 void Interpreter::execute(const Declaration& declaration)
 {
     Value value = evaluate(*declaration.value);
-    bool compatible =
-        (declaration.type == TokenType::TYPE_NOMBRE && std::holds_alternative<double>(value)) ||
-        (declaration.type == TokenType::TYPE_TEXTE && std::holds_alternative<std::string>(value)) ||
-        (declaration.type == TokenType::TYPE_BOOLEEN && std::holds_alternative<bool>(value));
+    bool compatible = (declaration.type == TokenType::TYPE_NOMBRE && std::holds_alternative<double>(value)) || (declaration.type == TokenType::TYPE_TEXTE && std::holds_alternative<std::string>(value)) || (declaration.type == TokenType::TYPE_BOOLEEN && std::holds_alternative<bool>(value));
 
     if (!compatible)
     {

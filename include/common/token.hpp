@@ -6,7 +6,7 @@ enum class TokenType {
     // Types de données
     TYPE_NOMBRE, // Nombre
     TYPE_TEXTE, // Chaine de caractères
-    TYPE_BOOLEEN,
+    TYPE_BOOLEEN, // Booléens
 
     // Données en mémoire
     NOMBRE,
@@ -31,6 +31,14 @@ enum class TokenType {
 
     // Instructions d'affichage
     AFFICHER,
+
+    // Opérateurs booléens
+    EST_EGAL_A,
+    EST_INFERIEUR_A,
+    EST_SUPERIEUR_A,
+    NON,
+    ET,
+    OU,
 
     // Fin de fichier
     FIN_DE_FICHIER,

@@ -27,8 +27,16 @@ void REPL::execute(const std::string& source, Interpreter& interpreter)
         }
         else if (parser.current_token().type == TokenType::IDENTIFIANT)
         {
-            Assignment assignment = parser.parse_assignment();
-            interpreter.execute(assignment);
+            if (parser.has_assignment_syntax())
+            {
+                Assignment assignment = parser.parse_assignment();
+                interpreter.execute(assignment);
+            }
+            else
+            {
+                Token unknown_type = parser.current_token();
+                throw SyntaxError("type '" + unknown_type.valeur + "' non reconnu", unknown_type.line, unknown_type.column);
+            }
         }
         else
         {

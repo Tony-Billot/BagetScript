@@ -1,2 +1,2 @@
-booleen actif = vrai;
-afficher(actif);
+booléen a = vrai;
+afficher(a et non faux);
