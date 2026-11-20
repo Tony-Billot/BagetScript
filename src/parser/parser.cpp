@@ -2,6 +2,7 @@
 #include "ast/expressions/identifier_expression.hpp"
 #include "ast/expressions/number_expression.hpp"
 #include "ast/expressions/text_expression.hpp"
+#include "ast/expressions/boolean_expression.hpp"
 #include "common/exceptions.hpp"
 #include <iostream>
 #include <memory>
@@ -39,9 +40,9 @@ Declaration Parser::parse_declaration()
 {
     Declaration declaration;
 
-    if (current_token().type != TokenType::TYPE_NOMBRE && current_token().type != TokenType::TYPE_TEXTE)
+    if (current_token().type != TokenType::TYPE_NOMBRE && current_token().type != TokenType::TYPE_TEXTE && current_token().type != TokenType::TYPE_BOOLEEN)
     {
-        throw SyntaxError("type nombre ou type texte attendu", current_token().line, current_token().column);
+        throw SyntaxError("type nombre, texte ou booleen attendu", current_token().line, current_token().column);
     }
 
     declaration.type = consume(current_token().type).type;
@@ -144,6 +145,16 @@ std::unique_ptr<Expression> Parser::parse_value()
         return text;
     }
 
+    if (is_current(TokenType::VRAI) || is_current(TokenType::FAUX))
+    {
+        Token token = consume(current_token().type);
+        auto boolean = std::make_unique<BooleanExpression>();
+        boolean->value = token.type == TokenType::VRAI;
+        boolean->line = token.line;
+        boolean->column = token.column;
+        return boolean;
+    }
+
     if (is_current(TokenType::IDENTIFIANT))
     {
         consume(TokenType::IDENTIFIANT);
@@ -194,8 +205,11 @@ std::string Parser::token_type_to_string(TokenType type)
     {
         case TokenType::TYPE_NOMBRE: return "type nombre";
         case TokenType::TYPE_TEXTE: return "type texte";
+        case TokenType::TYPE_BOOLEEN: return "type booleen";
         case TokenType::NOMBRE: return "nombre";
         case TokenType::TEXTE: return "texte";
+        case TokenType::VRAI: return "vrai";
+        case TokenType::FAUX: return "faux";
         case TokenType::IDENTIFIANT: return "identifiant";
         case TokenType::A_POUR_VALEUR: return "'='";
         case TokenType::PLUS: return "'+'";

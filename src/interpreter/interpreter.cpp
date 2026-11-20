@@ -2,6 +2,7 @@
 #include "ast/expressions/identifier_expression.hpp"
 #include "ast/expressions/number_expression.hpp"
 #include "ast/expressions/text_expression.hpp"
+#include "ast/expressions/boolean_expression.hpp"
 #include "common/exceptions.hpp"
 #include <charconv>
 #include <iostream>
@@ -20,6 +21,11 @@ Interpreter::Value Interpreter::evaluate(const Expression& expression)
     if (const TextExpression* text = dynamic_cast<const TextExpression*>(&expression))
     {
         return text->value;
+    }
+
+    if (const BooleanExpression* boolean = dynamic_cast<const BooleanExpression*>(&expression))
+    {
+        return boolean->value;
     }
 
     if (const UnaryExpression* unary = dynamic_cast<const UnaryExpression*>(&expression))
@@ -112,7 +118,12 @@ static std::string format_number(double value)
 void Interpreter::execute(const Declaration& declaration)
 {
     Value value = evaluate(*declaration.value);
-    if ((declaration.type == TokenType::TYPE_NOMBRE) != std::holds_alternative<double>(value))
+    bool compatible =
+        (declaration.type == TokenType::TYPE_NOMBRE && std::holds_alternative<double>(value)) ||
+        (declaration.type == TokenType::TYPE_TEXTE && std::holds_alternative<std::string>(value)) ||
+        (declaration.type == TokenType::TYPE_BOOLEEN && std::holds_alternative<bool>(value));
+
+    if (!compatible)
     {
         throw RuntimeError("type de valeur incompatible pour la déclaration de '" + declaration.name + "'", declaration.value->line, declaration.value->column);
     }
@@ -128,7 +139,7 @@ void Interpreter::execute(const Assignment& assignment)
     }
 
     Value value = evaluate(*assignment.value);
-    if (std::holds_alternative<double>(variable->second) != std::holds_alternative<double>(value))
+    if (variable->second.index() != value.index())
     {
         throw RuntimeError("type de valeur incompatible pour la variable '" + assignment.name + "'", assignment.value->line, assignment.value->column);
     }
@@ -147,6 +158,10 @@ void Interpreter::execute(const PrintStatement& statement)
     else if (std::holds_alternative<std::string>(value))
     {
         std::cout << std::get<std::string>(value) << '\n';
+    }
+    else if (std::holds_alternative<bool>(value))
+    {
+        std::cout << (std::get<bool>(value) ? "vrai" : "faux") << '\n';
     }
 
     else

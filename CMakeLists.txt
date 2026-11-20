@@ -21,6 +21,7 @@ set(SOURCES
     src/interpreter/interpreter.cpp
     src/types/number.cpp
     src/types/text.cpp
+    src/types/boolean.cpp
     src/debug/ast_printer.cpp
 )
 

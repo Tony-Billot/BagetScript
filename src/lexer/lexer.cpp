@@ -18,6 +18,9 @@ static const std::map<char, TokenType> symboles = {
 static const std::map<std::string, TokenType> keywords = {
     {"nombre", TokenType::TYPE_NOMBRE},
     {"texte", TokenType::TYPE_TEXTE},
+    {"booleen", TokenType::TYPE_BOOLEEN},
+    {"vrai", TokenType::VRAI},
+    {"faux", TokenType::FAUX},
     {"afficher", TokenType::AFFICHER}
 };
 
@@ -163,8 +166,11 @@ std::string Lexer::token_type_to_string(TokenType type)
     {
         case TokenType::TYPE_NOMBRE: return "TYPE_NOMBRE";
         case TokenType::TYPE_TEXTE: return "TYPE_TEXTE";
+        case TokenType::TYPE_BOOLEEN: return "TYPE_BOOLEEN";
         case TokenType::NOMBRE: return "NOMBRE";
         case TokenType::TEXTE: return "TEXTE";
+        case TokenType::VRAI: return "VRAI";
+        case TokenType::FAUX: return "FAUX";
         case TokenType::IDENTIFIANT: return "IDENTIFIANT";
         case TokenType::A_POUR_VALEUR: return "A_POUR_VALEUR";
         case TokenType::PLUS: return "PLUS";

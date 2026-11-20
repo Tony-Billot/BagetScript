@@ -16,7 +16,7 @@ class Interpreter
         void execute(const Assignment& assignment);
 
     private:
-        using Value = std::variant<double, std::string>;
+        using Value = std::variant<double, std::string, bool>;
         std::unordered_map<std::string, Value> variables;
 
         Value evaluate(const Expression& expression);

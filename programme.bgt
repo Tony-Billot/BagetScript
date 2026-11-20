@@ -1,0 +1,2 @@
+booleen actif = vrai;
+afficher(actif);

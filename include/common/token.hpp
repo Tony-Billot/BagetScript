@@ -6,10 +6,13 @@ enum class TokenType {
     // Types de données
     TYPE_NOMBRE, // Nombre
     TYPE_TEXTE, // Chaine de caractères
+    TYPE_BOOLEEN,
 
     // Données en mémoire
     NOMBRE,
     TEXTE,
+    VRAI,
+    FAUX,
 
     // Idenfitiants
     IDENTIFIANT,
