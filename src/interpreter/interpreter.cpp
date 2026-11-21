@@ -226,7 +226,7 @@ void Interpreter::execute(const Declaration& declaration)
     {
         throw RuntimeError("type de valeur incompatible pour la déclaration de '" + declaration.name + "'", declaration.value->line, declaration.value->column);
     }
-    variables[declaration.name] = evaluate(*declaration.value);
+    variables[declaration.name] = value;
 }
 
 void Interpreter::execute(const Assignment& assignment)
