@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <utility>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -53,11 +54,17 @@ void require_error(const std::string& source, ExpectedError expected)
             else if (parser.current_token().type == TokenType::TYPE_NOMBRE || parser.current_token().type == TokenType::TYPE_TEXTE || parser.current_token().type == TokenType::TYPE_BOOLEEN) {
                 interpreter.execute(parser.parse_declaration());
             }
-
+            else if (parser.current_token().type == TokenType::FONCTION)
+            {
+                interpreter.execute(parser.parse_function());
+            }
             else if (parser.current_token().type == TokenType::IDENTIFIANT && parser.has_assignment_syntax()) {
                 interpreter.execute(parser.parse_assignment());
             }
-
+            else if (parser.current_token().type == TokenType::IDENTIFIANT && parser.has_function_call_syntax())
+            {
+                interpreter.execute(*parser.parse_function_call());
+            }
             else {
                 throw SyntaxError("déclaration ou instruction attendue", parser.current_token().line, parser.current_token().column);
             }
@@ -101,11 +108,17 @@ std::string execute_source(const std::string& source)
             else if (parser.current_token().type == TokenType::TYPE_NOMBRE || parser.current_token().type == TokenType::TYPE_TEXTE || parser.current_token().type == TokenType::TYPE_BOOLEEN) {
                 interpreter.execute(parser.parse_declaration());
             }
-
+            else if (parser.current_token().type == TokenType::FONCTION)
+            {
+                interpreter.execute(parser.parse_function());
+            }
             else if (parser.current_token().type == TokenType::IDENTIFIANT && parser.has_assignment_syntax()) {
                 interpreter.execute(parser.parse_assignment());
             }
-
+            else if (parser.current_token().type == TokenType::IDENTIFIANT && parser.has_function_call_syntax())
+            {
+                interpreter.execute(*parser.parse_function_call());
+            }
             else {
                 throw SyntaxError("déclaration ou instruction attendue", parser.current_token().line, parser.current_token().column);
             }
@@ -145,6 +158,8 @@ const std::vector<OutputTest> output_tests = {
     {"parentheses", "afficher((2 + 3) * (4 + 1));", "25\n"},
     {"si/sinon si/sinon", "nombre valeur = 2; si (valeur == 1) { afficher(\"un\"); } sinon si (valeur == 2) { afficher(\"deux\"); } sinon { afficher(\"autre\"); }", "deux\n"},
     {"conditions imbriquees", "booléen actif = vrai; si (actif) { si (non faux) { afficher(\"ok\"); } }", "ok\n"},
+    {"fonction avec parametres", "fonction a(nombre a, texte b) { afficher(a); afficher(b); } a(2, \"3\");", "2\n3\n"},
+    {"retour de fonction", "fonction b() { retourner \"OK\"; } afficher(b());", "OK\n"},
 };
 
 void run_output_tests()
@@ -182,6 +197,16 @@ void run_special_tests()
             require(tokens[4].type == TokenType::FAUX, "mot-clé faux non reconnu");
             require(tokens[5].type == TokenType::IDENTIFIANT, "affichER doit rester un identifiant");
             require(tokens.back().type == TokenType::FIN_DE_FICHIER, "FIN_DE_FICHIER absent");
+        }},
+        {"lexer : fonction, retourner et virgule", []()
+        {
+            Lexer lexer;
+            std::vector<Token> tokens = lexer.to_tokens("fonction retourner,");
+
+            require(tokens[0].type == TokenType::FONCTION, "FONCTION non reconnu");
+            require(tokens[1].type == TokenType::RETOURNER, "RETOURNER non reconnu");
+            require(tokens[2].type == TokenType::VIRGULE, "VIRGULE non reconnue");
+            require(tokens[3].type == TokenType::FIN_DE_FICHIER, "fin de fichier absente");
         }},
         {"erreur lexicale", []()
         {
