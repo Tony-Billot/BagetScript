@@ -16,48 +16,7 @@ void REPL::execute(const std::string& source, Interpreter& interpreter)
 
     while (parser.has_more_tokens())
     {
-        if (parser.current_token().type == TokenType::AFFICHER)
-        {
-            PrintStatement statement = parser.parse_print_statement();
-            interpreter.execute(statement);
-        }
-        else if (parser.current_token().type == TokenType::SI)
-        {
-            IfStatement statement = parser.parse_if_statement();
-            interpreter.execute(statement);
-        }
-        else if (parser.current_token().type == TokenType::TYPE_NOMBRE || parser.current_token().type == TokenType::TYPE_TEXTE || parser.current_token().type == TokenType::TYPE_BOOLEEN)
-        {
-            Declaration declaration = parser.parse_declaration();
-            interpreter.execute(declaration);
-        }
-        else if (parser.current_token().type == TokenType::FONCTION)
-        {
-            auto function = parser.parse_function();
-            interpreter.execute(std::move(function));
-        }
-        else if (parser.current_token().type == TokenType::IDENTIFIANT)
-        {
-            if (parser.has_assignment_syntax())
-            {
-                Assignment assignment = parser.parse_assignment();
-                interpreter.execute(assignment);
-            }
-            else if (parser.has_function_call_syntax())
-            {
-                auto call = parser.parse_function_call();
-                interpreter.execute(*call);
-            }
-            else
-            {
-                Token unknown_type = parser.current_token();
-                throw SyntaxError("type '" + unknown_type.valeur + "' non reconnu", unknown_type.line, unknown_type.column);
-            }
-        }
-        else
-        {
-            throw SyntaxError("déclaration ou instruction afficher attendue", parser.current_token().line, parser.current_token().column);
-        }
+        interpreter.execute(parser.parse_statement());
     }
 }
 

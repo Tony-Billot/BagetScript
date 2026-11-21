@@ -13,6 +13,55 @@
 #include "ast/expressions/function_call_expression.hpp"
 #include <algorithm>
 
+void Interpreter::execute(std::unique_ptr<Statement> statement)
+{
+    if (const auto* declaration = dynamic_cast<const Declaration*>(statement.get()))
+    {
+        execute(*declaration);
+        return;
+    }
+
+    if (const auto* print = dynamic_cast<const PrintStatement*>(statement.get()))
+    {
+        execute(*print);
+        return;
+    }
+
+    if (const auto* assignment = dynamic_cast<const Assignment*>(statement.get()))
+    {
+        execute(*assignment);
+        return;
+    }
+
+    if (const auto* conditional = dynamic_cast<const IfStatement*>(statement.get()))
+    {
+        execute(*conditional);
+        return;
+    }
+
+    if (dynamic_cast<const FunctionStatement*>(statement.get()))
+    {
+        execute(std::unique_ptr<FunctionStatement>(
+            static_cast<FunctionStatement*>(statement.release())));
+        return;
+    }
+
+    if (const auto* call = dynamic_cast<const FunctionCallStatement*>(statement.get()))
+    {
+        execute(*call->call);
+        return;
+    }
+
+    if (const auto* return_statement = dynamic_cast<const ReturnStatement*>(statement.get()))
+    {
+        throw RuntimeError(
+            "instruction 'retourner' hors d'une fonction",
+            return_statement->value->line,
+            return_statement->value->column);
+    }
+
+    throw RuntimeError("instruction inconnue", 1, 1);
+}
 
 Interpreter::Value Interpreter::evaluate(const Expression& expression)
 {

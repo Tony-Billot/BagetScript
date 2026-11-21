@@ -83,6 +83,55 @@ Assignment Parser::parse_assignment()
     return assignment;
 }
 
+std::unique_ptr<Statement> Parser::parse_statement()
+{
+    if (is_current(TokenType::AFFICHER))
+    {
+        return std::make_unique<PrintStatement>(parse_print_statement());
+    }
+
+    if (is_current(TokenType::SI))
+    {
+        return std::make_unique<IfStatement>(parse_if_statement());
+    }
+
+    if (is_current(TokenType::TYPE_NOMBRE) || is_current(TokenType::TYPE_TEXTE) || is_current(TokenType::TYPE_BOOLEEN))
+    {
+        return std::make_unique<Declaration>(parse_declaration());
+    }
+
+    if (is_current(TokenType::FONCTION))
+    {
+        return parse_function();
+    }
+
+    if (is_current(TokenType::RETOURNER))
+    {
+        return parse_return();
+    }
+
+    if (is_current(TokenType::IDENTIFIANT))
+    {
+        if (has_assignment_syntax())
+        {
+            return std::make_unique<Assignment>(parse_assignment());
+        }
+
+        if (has_function_call_syntax())
+        {
+            auto call = std::make_unique<FunctionCallStatement>();
+            call->call = parse_function_call();
+            return call;
+        }
+    }
+
+    Token token = current_token();
+    throw SyntaxError(
+        "instruction attendue",
+        token.line,
+        token.column);
+}
+
 std::vector<std::unique_ptr<Statement>> Parser::parse_block()
 {
     consume(TokenType::ACCOLADE_GAUCHE);
@@ -90,47 +139,7 @@ std::vector<std::unique_ptr<Statement>> Parser::parse_block()
 
     while (!is_current(TokenType::ACCOLADE_DROITE))
     {
-        if (is_current(TokenType::AFFICHER))
-        {
-            statements.push_back(std::make_unique<PrintStatement>(parse_print_statement()));
-        }
-        else if (is_current(TokenType::TYPE_NOMBRE) || is_current(TokenType::TYPE_TEXTE) || is_current(TokenType::TYPE_BOOLEEN))
-        {
-            statements.push_back(std::make_unique<Declaration>(parse_declaration()));
-        }
-        else if (is_current(TokenType::IDENTIFIANT))
-        {
-            if (has_assignment_syntax())
-            {
-                statements.push_back(std::make_unique<Assignment>(parse_assignment()));
-            }
-            else if (has_function_call_syntax())
-            {
-                auto call_statement = std::make_unique<FunctionCallStatement>();
-                call_statement->call = parse_function_call();
-                statements.push_back(std::move(call_statement));
-            }
-            else
-            {
-                throw SyntaxError("instruction attendue", current_token().line, current_token().column);
-            }
-        }
-        else if (is_current(TokenType::FONCTION))
-        {
-            statements.push_back(parse_function());
-        }
-        else if (is_current(TokenType::RETOURNER))
-        {
-            statements.push_back(parse_return());
-        }
-        else if (is_current(TokenType::SI))
-        {
-            statements.push_back(std::make_unique<IfStatement>(parse_if_statement()));
-        }
-        else
-        {
-            throw SyntaxError("instruction attendue", current_token().line, current_token().column);
-        }
+        statements.push_back(parse_statement());
     }
 
     consume(TokenType::ACCOLADE_DROITE);

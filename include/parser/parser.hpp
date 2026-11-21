@@ -35,6 +35,7 @@ class Parser
         bool has_more_tokens() const;
         bool has_assignment_syntax();
         bool has_function_call_syntax();
+        std::unique_ptr<Statement> parse_statement();
         Declaration parse_declaration();
         PrintStatement parse_print_statement();
         Assignment parse_assignment();

@@ -17,6 +17,7 @@
 class Interpreter
 {
     public:
+        void execute(std::unique_ptr<Statement> statement);
         void execute(const Declaration& declaration);
         void execute(const PrintStatement& statement);
         void execute(const Assignment& assignment);

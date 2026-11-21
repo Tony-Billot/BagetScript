@@ -9,7 +9,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <utility>
 
 #ifdef _WIN32
 #include <windows.h>
