@@ -26,3 +26,21 @@ set(SOURCES
 )
 
 add_executable(bagetscript ${SOURCES})
+
+enable_testing()
+
+add_executable(bagetscript_tests
+    tests/unit_tests.cpp
+    src/lexer/lexer.cpp
+    src/parser/parser.cpp
+    src/interpreter/interpreter.cpp
+)
+
+target_include_directories(bagetscript_tests PRIVATE include)
+
+add_test(NAME bagetscript_unit_tests COMMAND bagetscript_tests)
+
+add_custom_command(TARGET bagetscript_tests POST_BUILD
+    COMMAND $<TARGET_FILE:bagetscript_tests>
+    COMMENT "Exécution des tests unitaires BagetScript"
+)

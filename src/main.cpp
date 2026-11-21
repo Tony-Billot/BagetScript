@@ -40,6 +40,7 @@ int main(int argc, char* argv[])
             std::cerr << "Impossible d'ouvrir le fichier : " << argv[1] << '\n';
             return 1;
         }
+        
         try
         {
             repl.run(file, debug);
@@ -56,6 +57,8 @@ int main(int argc, char* argv[])
         }
         return 0;
     }
+
+
 
     repl.run();
 
