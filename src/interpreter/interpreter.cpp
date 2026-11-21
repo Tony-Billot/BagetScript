@@ -9,6 +9,8 @@
 #include "ast/expressions/binary_expression.hpp"
 #include "ast/expressions/unary_expression.hpp"
 #include "ast/statements/if_statement.hpp"
+#include "ast/statements/function.hpp"
+#include "ast/expressions/function_call_expression.hpp"
 #include <algorithm>
 
 
@@ -69,6 +71,11 @@ Interpreter::Value Interpreter::evaluate(const Expression& expression)
             throw RuntimeError("variable inconnue '" + identifier->name + "'", identifier->line, identifier->column);
         }
         return variable->second;
+    }
+
+    if (const FunctionCallExpression* call = dynamic_cast<const FunctionCallExpression*>(&expression))
+    {
+        return execute_function(*call);
     }
 
     if (const BinaryExpression* binary = dynamic_cast<const BinaryExpression*>(&expression))
@@ -190,35 +197,73 @@ void Interpreter::execute(const Assignment& assignment)
     variable->second = value;
 }
 
+std::optional<Interpreter::Value> Interpreter::execute_block(
+    const std::vector<std::unique_ptr<Statement>>& statements)
+{
+    for (const auto& item : statements)
+    {
+        if (const auto* declaration = dynamic_cast<const Declaration*>(item.get()))
+        {
+            execute(*declaration);
+        }
+        else if (const auto* print = dynamic_cast<const PrintStatement*>(item.get()))
+        {
+            execute(*print);
+        }
+        else if (const auto* assignment = dynamic_cast<const Assignment*>(item.get()))
+        {
+            execute(*assignment);
+        }
+        else if (const auto* conditional = dynamic_cast<const IfStatement*>(item.get()))
+        {
+            Value condition = evaluate(*conditional->condition);
+            std::optional<Value> returned;
+
+            if (std::holds_alternative<bool>(condition) && std::get<bool>(condition))
+            {
+                returned = execute_block(conditional->statements);
+            }
+            else
+            {
+                bool branch_matched = false;
+                for (const ElseIfBranch& branch : conditional->else_if_branches)
+                {
+                    Value branch_condition = evaluate(*branch.condition);
+                    if (std::holds_alternative<bool>(branch_condition)
+                        && std::get<bool>(branch_condition))
+                    {
+                        branch_matched = true;
+                        returned = execute_block(branch.statements);
+                        break;
+                    }
+                }
+
+                if (!branch_matched)
+                    returned = execute_block(conditional->else_statements);
+            }
+
+            if (returned)
+                return returned;
+        }
+        else if (const auto* return_statement = dynamic_cast<const ReturnStatement*>(item.get()))
+        {
+            return evaluate(*return_statement->value);
+        }
+        else if (const auto* call = dynamic_cast<const FunctionCallStatement*>(item.get()))
+        {
+            (void)execute_function(*call->call);
+        }
+    }
+
+    return std::nullopt;
+}
+
 void Interpreter::execute(const IfStatement& statement)
 {
-    auto execute_block = [this](const std::vector<std::unique_ptr<Statement>>& statements)
-    {
-        for (const auto& item : statements)
-        {
-            if (const auto* declaration = dynamic_cast<const Declaration*>(item.get()))
-            {
-                execute(*declaration);
-            }
-            else if (const auto* print = dynamic_cast<const PrintStatement*>(item.get()))
-            {
-                execute(*print);
-            }
-            else if (const auto* assignment = dynamic_cast<const Assignment*>(item.get()))
-            {
-                execute(*assignment);
-            }
-            else if (const auto* conditional = dynamic_cast<const IfStatement*>(item.get()))
-            {
-                execute(*conditional);
-            }
-        }
-    };
-
     Value condition = evaluate(*statement.condition);
     if (std::holds_alternative<bool>(condition) && std::get<bool>(condition))
     {
-        execute_block(statement.statements);
+        (void)execute_block(statement.statements);
         return;
     }
 
@@ -227,12 +272,73 @@ void Interpreter::execute(const IfStatement& statement)
         Value branch_condition = evaluate(*branch.condition);
         if (std::holds_alternative<bool>(branch_condition) && std::get<bool>(branch_condition))
         {
-            execute_block(branch.statements);
+            (void)execute_block(branch.statements);
             return;
         }
     }
 
-    execute_block(statement.else_statements);
+    (void)execute_block(statement.else_statements);
+}
+
+void Interpreter::execute(std::unique_ptr<FunctionStatement> statement)
+{
+    const std::string& name = statement->name;
+    if (functions.find(name) != functions.end())
+    {
+        throw RuntimeError("fonction deja declaree '" + name + "'", 1, 1);
+    }
+
+    functions[name] = std::move(statement);
+}
+
+Interpreter::Value Interpreter::execute_function(const FunctionCallExpression& call)
+{
+    const auto function = functions.find(call.name);
+    if (function == functions.end())
+    {
+        throw RuntimeError("fonction inconnue '" + call.name + "'", call.line, call.column);
+    }
+
+    if (call.arguments.size() != function->second->parameters.size())
+    {
+        throw RuntimeError(
+            "nombre d'arguments incorrect pour la fonction '" + call.name + "'",
+            call.line,
+            call.column);
+    }
+
+    auto saved_variables = variables;
+
+    for (size_t index = 0; index < call.arguments.size(); ++index)
+    {
+        Value argument = evaluate(*call.arguments[index]);
+        const Parameter& parameter = function->second->parameters[index];
+
+        bool compatible =
+            (parameter.type == TokenType::TYPE_NOMBRE && std::holds_alternative<double>(argument))
+            || (parameter.type == TokenType::TYPE_TEXTE && std::holds_alternative<std::string>(argument))
+            || (parameter.type == TokenType::TYPE_BOOLEEN && std::holds_alternative<bool>(argument));
+
+        if (!compatible)
+        {
+            throw RuntimeError(
+                "type d'argument incompatible pour '" + parameter.name + "'",
+                call.line,
+                call.column);
+        }
+
+        variables[parameter.name] = argument;
+    }
+
+    std::optional<Value> returned = execute_block(function->second->statements);
+    variables = saved_variables;
+
+    return returned.value_or(Value(21.0));
+}
+
+void Interpreter::execute(const FunctionCallExpression& call)
+{
+    (void)execute_function(call);
 }
 
 void Interpreter::execute(const PrintStatement& statement)

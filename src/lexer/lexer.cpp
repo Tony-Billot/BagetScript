@@ -14,7 +14,9 @@ static const std::map<char, TokenType> symboles = {
     {')', TokenType::PARENTHESE_DROITE},
     {'{', TokenType::ACCOLADE_GAUCHE},
     {'}', TokenType::ACCOLADE_DROITE},
-    {';', TokenType::POINT_VIRGULE}
+    {';', TokenType::POINT_VIRGULE},
+    {',', TokenType::VIRGULE}
+
 };
 
 static const std::map<std::string, TokenType> keywords = {
@@ -28,7 +30,9 @@ static const std::map<std::string, TokenType> keywords = {
     {"ou", TokenType::OU},
     {"afficher", TokenType::AFFICHER},
     {"si", TokenType::SI},
-    {"sinon", TokenType::SINON}
+    {"sinon", TokenType::SINON},
+    {"fonction", TokenType::FONCTION},
+    {"retourner", TokenType::RETOURNER}
 };
 
 std::vector<Token> Lexer::to_tokens(const std::string& source)
@@ -220,6 +224,9 @@ std::string Lexer::token_type_to_string(TokenType type)
         case TokenType::NON: return "NON";
         case TokenType::ET: return "ET";
         case TokenType::OU: return "OU";
+        case TokenType::FONCTION: return "FONCTION";
+        case TokenType::RETOURNER: return "RETOURNER";
+        case TokenType::VIRGULE: return "VIRGULE";
         case TokenType::FIN_DE_FICHIER: return "FIN_DE_FICHIER";
     }
 

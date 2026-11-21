@@ -10,6 +10,9 @@
 #include <string>
 #include <vector>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace
 {
@@ -131,17 +134,17 @@ struct OutputTest
 };
 
 const std::vector<OutputTest> output_tests = {
-    {"déclaration nombre", "nombre entier = 42; afficher(entier);", "42\n"},
-    {"déclaration texte", "texte message = \"Bonjour\"; afficher(message);", "Bonjour\n"},
-    {"déclaration booléen", "booléen actif = vrai; afficher(actif);", "vrai\n"},
+    {"declaration nombre", "nombre entier = 42; afficher(entier);", "42\n"},
+    {"declaration texte", "texte message = \"Bonjour\"; afficher(message);", "Bonjour\n"},
+    {"declaration booleen", "booléen actif = vrai; afficher(actif);", "vrai\n"},
     {"affectation", "nombre compteur = 1; compteur = 9; afficher(compteur);", "9\n"},
-    {"priorité arithmétique", "afficher(1 + 2 * 3); afficher((1 + 2) * 3); afficher(-5);", "7\n9\n-5\n"},
-    {"concaténation", "texte messageConcatene = \"Bon\" + \"jour\"; afficher(messageConcatene);", "Bonjour\n"},
+    {"priorite arithmetique", "afficher(1 + 2 * 3); afficher((1 + 2) * 3); afficher(-5);", "7\n9\n-5\n"},
+    {"concatenation", "texte messageConcatene = \"Bon\" + \"jour\"; afficher(messageConcatene);", "Bonjour\n"},
     {"comparaisons", "afficher(3 < 5); afficher(5 > 3); afficher(4 == 4); afficher(4 == 5);", "vrai\nvrai\nvrai\nfaux\n"},
-    {"opérateurs booléens", "afficher(vrai et faux); afficher(vrai ou faux); afficher(non faux); afficher(vrai == vrai);", "faux\nvrai\nvrai\nvrai\n"},
-    {"parenthèses", "afficher((2 + 3) * (4 + 1));", "25\n"},
+    {"operateurs booleens", "afficher(vrai et faux); afficher(vrai ou faux); afficher(non faux); afficher(vrai == vrai);", "faux\nvrai\nvrai\nvrai\n"},
+    {"parentheses", "afficher((2 + 3) * (4 + 1));", "25\n"},
     {"si/sinon si/sinon", "nombre valeur = 2; si (valeur == 1) { afficher(\"un\"); } sinon si (valeur == 2) { afficher(\"deux\"); } sinon { afficher(\"autre\"); }", "deux\n"},
-    {"conditions imbriquées", "booléen actif = vrai; si (actif) { si (non faux) { afficher(\"ok\"); } }", "ok\n"},
+    {"conditions imbriquees", "booléen actif = vrai; si (actif) { si (non faux) { afficher(\"ok\"); } }", "ok\n"},
 };
 
 void run_output_tests()
@@ -166,7 +169,7 @@ void run_special_tests()
     };
 
     const std::vector<NamedTest> tests = {
-        {"lexer : mots-clés et fin de fichier", []()
+        {"lexer : mots-clefs et fin de fichier", []()
         {
             Lexer lexer;
             std::vector<Token> tokens = lexer.to_tokens("nombre texte booléen vrai faux affichER + - * / ( ) { } ; si sinon identifiant");
@@ -218,11 +221,16 @@ void run_special_tests()
 
 int main()
 {
+#ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+#endif
+
     try
     {
         run_output_tests();
         run_special_tests();
-        std::cout << "Tous les tests unitaires ont réussi.\n";
+        std::cout << "Tous les tests unitaires ont reussi.\n";
         return EXIT_SUCCESS;
     }
     catch (const std::exception& error)

@@ -1,5 +1,10 @@
 $ErrorActionPreference = "Stop"
 
+$OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+cmd.exe /d /c "chcp 65001>nul"
+
 $root = Split-Path -Parent $PSScriptRoot
 $build = Join-Path $root "build"
 

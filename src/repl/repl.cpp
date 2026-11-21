@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 #include <iterator>
+#include <utility>
 
 void REPL::execute(const std::string& source, Interpreter& interpreter)
 {
@@ -30,12 +31,22 @@ void REPL::execute(const std::string& source, Interpreter& interpreter)
             Declaration declaration = parser.parse_declaration();
             interpreter.execute(declaration);
         }
+        else if (parser.current_token().type == TokenType::FONCTION)
+        {
+            auto function = parser.parse_function();
+            interpreter.execute(std::move(function));
+        }
         else if (parser.current_token().type == TokenType::IDENTIFIANT)
         {
             if (parser.has_assignment_syntax())
             {
                 Assignment assignment = parser.parse_assignment();
                 interpreter.execute(assignment);
+            }
+            else if (parser.has_function_call_syntax())
+            {
+                auto call = parser.parse_function_call();
+                interpreter.execute(*call);
             }
             else
             {

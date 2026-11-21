@@ -8,6 +8,8 @@
 #include <memory>
 #include "ast/expressions/binary_expression.hpp"
 #include "ast/expressions/unary_expression.hpp"
+#include "ast/statements/function.hpp"
+#include "ast/expressions/function_call_expression.hpp"
 
 
 Parser::Parser(std::vector<Token> tokens)
@@ -98,7 +100,28 @@ std::vector<std::unique_ptr<Statement>> Parser::parse_block()
         }
         else if (is_current(TokenType::IDENTIFIANT))
         {
-            statements.push_back(std::make_unique<Assignment>(parse_assignment()));
+            if (has_assignment_syntax())
+            {
+                statements.push_back(std::make_unique<Assignment>(parse_assignment()));
+            }
+            else if (has_function_call_syntax())
+            {
+                auto call_statement = std::make_unique<FunctionCallStatement>();
+                call_statement->call = parse_function_call();
+                statements.push_back(std::move(call_statement));
+            }
+            else
+            {
+                throw SyntaxError("instruction attendue", current_token().line, current_token().column);
+            }
+        }
+        else if (is_current(TokenType::FONCTION))
+        {
+            statements.push_back(parse_function());
+        }
+        else if (is_current(TokenType::RETOURNER))
+        {
+            statements.push_back(parse_return());
         }
         else if (is_current(TokenType::SI))
         {
@@ -286,6 +309,12 @@ std::unique_ptr<Expression> Parser::parse_value()
 
     if (is_current(TokenType::IDENTIFIANT))
     {
+        if (position + 1 < static_cast<int>(tokens.size())
+            && tokens[position + 1].type == TokenType::PARENTHESE_GAUCHE)
+        {
+            return parse_function_call_expression();
+        }
+
         consume(TokenType::IDENTIFIANT);
         auto variable = std::make_unique<IdentifierExpression>();
         variable->name = token.valeur;
@@ -320,6 +349,98 @@ std::unique_ptr<Expression> Parser::parse_unary()
     }
 
     return parse_value();
+}
+
+
+std::unique_ptr<FunctionStatement> Parser::parse_function()
+{
+    consume(TokenType::FONCTION);
+    Token name = consume(TokenType::IDENTIFIANT);
+
+    auto function = std::make_unique<FunctionStatement>();
+    function->name = name.valeur;
+
+    consume(TokenType::PARENTHESE_GAUCHE);
+
+    if (!is_current(TokenType::PARENTHESE_DROITE))
+    {
+        while (true)
+        {
+            Token parameter_type = current_token();
+            if (parameter_type.type != TokenType::TYPE_NOMBRE
+                && parameter_type.type != TokenType::TYPE_TEXTE
+                && parameter_type.type != TokenType::TYPE_BOOLEEN)
+            {
+                throw SyntaxError("type de paramètre nombre, texte ou booléen attendu", parameter_type.line, parameter_type.column);
+            }
+            consume(parameter_type.type);
+
+            Token parameter_name = consume(TokenType::IDENTIFIANT);
+            function->parameters.push_back({parameter_type.type, parameter_name.valeur});
+
+            if (!is_current(TokenType::VIRGULE)) {
+                break;
+            }
+
+            consume(TokenType::VIRGULE);
+        }
+    }
+
+    consume(TokenType::PARENTHESE_DROITE);
+    function->statements = parse_block();
+
+    return function;
+}
+
+std::unique_ptr<FunctionCallExpression> Parser::parse_function_call_expression()
+{
+    Token name = consume(TokenType::IDENTIFIANT);
+    consume(TokenType::PARENTHESE_GAUCHE);
+
+    auto call = std::make_unique<FunctionCallExpression>();
+    call->name = name.valeur;
+    call->line = name.line;
+    call->column = name.column;
+
+    if (!is_current(TokenType::PARENTHESE_DROITE))
+    {
+        while (true)
+        {
+            call->arguments.push_back(parse_expression());
+
+            if (!is_current(TokenType::VIRGULE))
+                break;
+
+            consume(TokenType::VIRGULE);
+        }
+    }
+
+    consume(TokenType::PARENTHESE_DROITE);
+    return call;
+}
+
+std::unique_ptr<FunctionCallExpression> Parser::parse_function_call()
+{
+    auto call = parse_function_call_expression();
+    consume(TokenType::POINT_VIRGULE);
+    return call;
+}
+
+std::unique_ptr<ReturnStatement> Parser::parse_return()
+{
+    consume(TokenType::RETOURNER);
+
+    auto statement = std::make_unique<ReturnStatement>();
+    statement->value = parse_expression();
+    consume(TokenType::POINT_VIRGULE);
+    return statement;
+}
+
+bool Parser::has_function_call_syntax()
+{
+    return position + 1 < static_cast<int>(tokens.size())
+        && tokens[position].type == TokenType::IDENTIFIANT
+        && tokens[position + 1].type == TokenType::PARENTHESE_GAUCHE;
 }
 
 bool Parser::is_current(TokenType type)
@@ -364,6 +485,9 @@ std::string Parser::token_type_to_string(TokenType type)
         case TokenType::ACCOLADE_DROITE: return "'}'";
         case TokenType::POINT_VIRGULE: return "';'";
         case TokenType::AFFICHER: return "'afficher'";
+        case TokenType::FONCTION: return "'fonction'";
+        case TokenType::VIRGULE: return "','";
+        case TokenType::RETOURNER: return "'retourner'";
         case TokenType::FIN_DE_FICHIER: return "fin du fichier";
     }
 

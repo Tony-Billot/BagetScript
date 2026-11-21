@@ -30,6 +30,7 @@ enum class TokenType {
     ACCOLADE_GAUCHE,
     ACCOLADE_DROITE,
     POINT_VIRGULE,
+    VIRGULE,
 
     // Instructions conditionnelles
     SI,
@@ -47,10 +48,12 @@ enum class TokenType {
     ET,
     OU,
 
+    // Mots réservés pour les fonctions
+    FONCTION,
+    RETOURNER,
+
     // Fin de fichier
-    FIN_DE_FICHIER,
-
-
+    FIN_DE_FICHIER
 };
 
 

@@ -40,7 +40,14 @@ target_include_directories(bagetscript_tests PRIVATE include)
 
 add_test(NAME bagetscript_unit_tests COMMAND bagetscript_tests)
 
-add_custom_command(TARGET bagetscript_tests POST_BUILD
-    COMMAND $<TARGET_FILE:bagetscript_tests>
-    COMMENT "Exécution des tests unitaires BagetScript"
-)
+if(MSVC)
+    add_custom_command(TARGET bagetscript_tests POST_BUILD
+        COMMAND cmd.exe /d /c "chcp 65001>nul && \"$<TARGET_FILE:bagetscript_tests>\""
+        COMMENT "Exécution des tests unitaires BagetScript"
+    )
+else()
+    add_custom_command(TARGET bagetscript_tests POST_BUILD
+        COMMAND $<TARGET_FILE:bagetscript_tests>
+        COMMENT "Exécution des tests unitaires BagetScript"
+    )
+endif()

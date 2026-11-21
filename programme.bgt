@@ -1,0 +1,6 @@
+fonction a(nombre a, texte b) {
+    afficher(a);
+    afficher(b);
+}
+
+a(2, "3");
