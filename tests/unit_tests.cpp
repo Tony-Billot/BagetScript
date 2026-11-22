@@ -40,32 +40,9 @@ void require_error(const std::string& source, ExpectedError expected)
         Parser parser(tokens);
         Interpreter interpreter;
 
-        while (parser.has_more_tokens())
+        for (auto& statement : parser.parse())
         {
-            if (parser.current_token().type == TokenType::AFFICHER){
-                interpreter.execute(parser.parse_print_statement());
-            }
-
-            else if (parser.current_token().type == TokenType::SI) {
-                interpreter.execute(parser.parse_if_statement());
-            }
-            else if (parser.current_token().type == TokenType::TYPE_NOMBRE || parser.current_token().type == TokenType::TYPE_TEXTE || parser.current_token().type == TokenType::TYPE_BOOLEEN) {
-                interpreter.execute(parser.parse_declaration());
-            }
-            else if (parser.current_token().type == TokenType::FONCTION)
-            {
-                interpreter.execute(parser.parse_function());
-            }
-            else if (parser.current_token().type == TokenType::IDENTIFIANT && parser.has_assignment_syntax()) {
-                interpreter.execute(parser.parse_assignment());
-            }
-            else if (parser.current_token().type == TokenType::IDENTIFIANT && parser.has_function_call_syntax())
-            {
-                interpreter.execute(*parser.parse_function_call());
-            }
-            else {
-                throw SyntaxError("déclaration ou instruction attendue", parser.current_token().line, parser.current_token().column);
-            }
+            interpreter.execute(std::move(statement));
         }
     }
     catch (const SyntaxError&)
@@ -93,32 +70,9 @@ std::string execute_source(const std::string& source)
 
     try
     {
-        while (parser.has_more_tokens())
+        for (auto& statement : parser.parse())
         {
-            if (parser.current_token().type == TokenType::AFFICHER){
-                interpreter.execute(parser.parse_print_statement());
-            }
-
-            else if (parser.current_token().type == TokenType::SI) {
-                interpreter.execute(parser.parse_if_statement());
-            }
-            else if (parser.current_token().type == TokenType::TYPE_NOMBRE || parser.current_token().type == TokenType::TYPE_TEXTE || parser.current_token().type == TokenType::TYPE_BOOLEEN) {
-                interpreter.execute(parser.parse_declaration());
-            }
-            else if (parser.current_token().type == TokenType::FONCTION)
-            {
-                interpreter.execute(parser.parse_function());
-            }
-            else if (parser.current_token().type == TokenType::IDENTIFIANT && parser.has_assignment_syntax()) {
-                interpreter.execute(parser.parse_assignment());
-            }
-            else if (parser.current_token().type == TokenType::IDENTIFIANT && parser.has_function_call_syntax())
-            {
-                interpreter.execute(*parser.parse_function_call());
-            }
-            else {
-                throw SyntaxError("déclaration ou instruction attendue", parser.current_token().line, parser.current_token().column);
-            }
+            interpreter.execute(std::move(statement));
         }
     }
     catch (const BagetScriptError&)

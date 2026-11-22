@@ -14,9 +14,9 @@ void REPL::execute(const std::string& source, Interpreter& interpreter)
     std::vector<Token> tokens = to_tokens(source);
     Parser parser(tokens);
 
-    while (parser.has_more_tokens())
+    for (auto& statement : parser.parse())
     {
-        interpreter.execute(parser.parse_statement());
+        interpreter.execute(std::move(statement));
     }
 }
 

@@ -13,9 +13,16 @@ Parser::Parser(std::vector<Token> tokens)
     this->tokens = tokens;
 }
 
-bool Parser::has_more_tokens() const
+std::vector<std::unique_ptr<Statement>> Parser::parse()
 {
-    return tokens[position].type != TokenType::FIN_DE_FICHIER;
+    std::vector<std::unique_ptr<Statement>> program;
+
+    while (!is_current(TokenType::FIN_DE_FICHIER))
+    {
+        program.push_back(parse_statement());
+    }
+
+    return program;
 }
 
 Token Parser::current_token()
