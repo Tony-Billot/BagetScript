@@ -36,8 +36,7 @@ void require_error(const std::string& source, ExpectedError expected)
 {
     try
     {
-        Lexer lexer;
-        std::vector<Token> tokens = lexer.to_tokens(source);
+        std::vector<Token> tokens = to_tokens(source);
         Parser parser(tokens);
         Interpreter interpreter;
 
@@ -86,8 +85,7 @@ void require_error(const std::string& source, ExpectedError expected)
 
 std::string execute_source(const std::string& source)
 {
-    Lexer lexer;
-    std::vector<Token> tokens = lexer.to_tokens(source);
+    std::vector<Token> tokens = to_tokens(source);
     Parser parser(tokens);
     Interpreter interpreter;
     std::ostringstream output;
@@ -186,8 +184,7 @@ void run_special_tests()
     const std::vector<NamedTest> tests = {
         {"lexer : mots-clefs et fin de fichier", []()
         {
-            Lexer lexer;
-            std::vector<Token> tokens = lexer.to_tokens("nombre texte booléen vrai faux affichER + - * / ( ) { } ; si sinon identifiant");
+            std::vector<Token> tokens = to_tokens("nombre texte booléen vrai faux affichER + - * / ( ) { } ; si sinon identifiant");
 
             require(tokens.size() >= 19, "nombre de tokens incorrect");
             require(tokens[0].type == TokenType::TYPE_NOMBRE, "mot-clé nombre non reconnu");
@@ -200,8 +197,7 @@ void run_special_tests()
         }},
         {"lexer : fonction, retourner et virgule", []()
         {
-            Lexer lexer;
-            std::vector<Token> tokens = lexer.to_tokens("fonction retourner,");
+            std::vector<Token> tokens = to_tokens("fonction retourner,");
 
             require(tokens[0].type == TokenType::FONCTION, "FONCTION non reconnu");
             require(tokens[1].type == TokenType::RETOURNER, "RETOURNER non reconnu");
@@ -210,10 +206,9 @@ void run_special_tests()
         }},
         {"erreur lexicale", []()
         {
-            Lexer lexer;
             try
             {
-                (void)lexer.to_tokens("texte message = \"non fermé;");
+                (void)to_tokens("texte message = \"non fermé;");
             }
             catch (const LexicalError&)
             {

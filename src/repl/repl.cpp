@@ -2,16 +2,16 @@
 #include "parser/parser.hpp"
 #include "interpreter/interpreter.hpp"
 #include "common/exceptions.hpp"
+#include "lexer/lexer.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <iterator>
-#include <utility>
 
 void REPL::execute(const std::string& source, Interpreter& interpreter)
 {
-    std::vector<Token> tokens = lexer.to_tokens(source);
+    std::vector<Token> tokens = to_tokens(source);
     Parser parser(tokens);
 
     while (parser.has_more_tokens())
@@ -56,7 +56,7 @@ void REPL::run(std::ifstream& file, bool debug)
 
     if (debug)
     {
-        print_tokens(lexer.to_tokens(source));
+        print_tokens(to_tokens(source));
         return;
     }
 

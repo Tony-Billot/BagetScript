@@ -34,7 +34,7 @@ static const std::map<std::string, TokenType> keywords = {
     {"retourner", TokenType::RETOURNER}
 };
 
-std::vector<Token> Lexer::to_tokens(const std::string& source)
+std::vector<Token> to_tokens(const std::string& source)
 {
     std::vector<Token> tokens;
     int position = 0;
@@ -74,8 +74,6 @@ std::vector<Token> Lexer::to_tokens(const std::string& source)
         return std::isalpha(c) || c == '_' || c >= 128;
     };
 
-
-    // Loop which creates the tokens
     while (!is_end())
     {
         unsigned char current_char = peek();
