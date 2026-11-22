@@ -4,7 +4,6 @@
 #include "common/exceptions.hpp"
 
 static const std::map<char, TokenType> symboles = {
-    {'=', TokenType::A_POUR_VALEUR},
     {'+', TokenType::PLUS},
     {'-', TokenType::MOINS},
     {'*', TokenType::FOIS},
@@ -14,8 +13,9 @@ static const std::map<char, TokenType> symboles = {
     {'{', TokenType::ACCOLADE_GAUCHE},
     {'}', TokenType::ACCOLADE_DROITE},
     {';', TokenType::POINT_VIRGULE},
-    {',', TokenType::VIRGULE}
-
+    {',', TokenType::VIRGULE},
+    {'<', TokenType::EST_INFERIEUR_A},
+    {'>', TokenType::EST_SUPERIEUR_A}
 };
 
 static const std::map<std::string, TokenType> keywords = {
@@ -41,11 +41,6 @@ std::vector<Token> Lexer::to_tokens(const std::string& source)
     int line = 1;
     int column = 1;
 
-    /* 
-    =========================================================================
-    Functions used in the main loop
-    ========================================================================= 
-    */
     auto is_end = [&]() -> bool
     {
         return position >= static_cast<int>(source.size());
@@ -93,25 +88,16 @@ std::vector<Token> Lexer::to_tokens(const std::string& source)
             advance();
         }
 
-        else if (current_char == '='
-            && position + 1 < static_cast<int>(source.size())
-            && source[position + 1] == '=')
+        else if (current_char == '=')
         {
             advance();
-            advance();
-            tokens.push_back({TokenType::EST_EGAL_A, "==", start_line, start_column});
-        }
-
-        else if (current_char == '<')
-        {
-            advance();
-            tokens.push_back({TokenType::EST_INFERIEUR_A, "<", start_line, start_column});
-        }
-
-        else if (current_char == '>')
-        {
-            advance();
-            tokens.push_back({TokenType::EST_SUPERIEUR_A, ">", start_line, start_column});
+            if (peek() == '=')
+            {
+                advance();
+                tokens.push_back({TokenType::EST_EGAL_A, "==", start_line, start_column});
+            }
+            else
+                tokens.push_back({TokenType::A_POUR_VALEUR, "=", start_line, start_column});
         }
 
         else if (symboles.find(current_char) != symboles.end())
@@ -180,53 +166,4 @@ std::vector<Token> Lexer::to_tokens(const std::string& source)
 
     tokens.push_back({TokenType::FIN_DE_FICHIER, "", line, column});
     return tokens;
-}
-
-
-
-/* 
-=========================================================================
-DEBUG PART
-=========================================================================
-*/
-
-//Debug function to print the tokens
-std::string Lexer::token_type_to_string(TokenType type)
-{
-    switch (type)
-    {
-        case TokenType::TYPE_NOMBRE: return "TYPE_NOMBRE";
-        case TokenType::TYPE_TEXTE: return "TYPE_TEXTE";
-        case TokenType::TYPE_BOOLEEN: return "TYPE_BOOLEEN";
-        case TokenType::NOMBRE: return "NOMBRE";
-        case TokenType::TEXTE: return "TEXTE";
-        case TokenType::VRAI: return "VRAI";
-        case TokenType::FAUX: return "FAUX";
-        case TokenType::IDENTIFIANT: return "IDENTIFIANT";
-        case TokenType::A_POUR_VALEUR: return "A_POUR_VALEUR";
-        case TokenType::PLUS: return "PLUS";
-        case TokenType::MOINS: return "MOINS";
-        case TokenType::FOIS: return "FOIS";
-        case TokenType::DIVISE: return "DIVISE";
-        case TokenType::PARENTHESE_GAUCHE: return "PARENTHESE_GAUCHE";
-        case TokenType::PARENTHESE_DROITE: return "PARENTHESE_DROITE";
-        case TokenType::ACCOLADE_GAUCHE: return "ACCOLADE_GAUCHE";
-        case TokenType::ACCOLADE_DROITE: return "ACCOLADE_DROITE";
-        case TokenType::POINT_VIRGULE: return "POINT_VIRGULE";
-        case TokenType::AFFICHER: return "AFFICHER";
-        case TokenType::SI: return "SI";
-        case TokenType::SINON: return "SINON";
-        case TokenType::EST_EGAL_A: return "EST_EGAL_A";
-        case TokenType::EST_INFERIEUR_A: return "EST_INFERIEUR_A";
-        case TokenType::EST_SUPERIEUR_A: return "EST_SUPERIEUR_A";
-        case TokenType::NON: return "NON";
-        case TokenType::ET: return "ET";
-        case TokenType::OU: return "OU";
-        case TokenType::FONCTION: return "FONCTION";
-        case TokenType::RETOURNER: return "RETOURNER";
-        case TokenType::VIRGULE: return "VIRGULE";
-        case TokenType::FIN_DE_FICHIER: return "FIN_DE_FICHIER";
-    }
-
-    return "INCONNU";
 }

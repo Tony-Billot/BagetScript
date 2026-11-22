@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 enum class TokenType {
 
@@ -63,3 +64,6 @@ struct Token
     int line;
     int column;
 };
+
+std::string token_type_to_string(TokenType type);
+void print_tokens(const std::vector<Token>& tokens);

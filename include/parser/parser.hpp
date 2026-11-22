@@ -15,7 +15,6 @@ class Parser
         int position = 0;
 
         Token consume(TokenType expected);
-        std::string token_type_to_string(TokenType type);
         std::unique_ptr<Expression> operate(std::unique_ptr<Expression> left, Token operator_token, std::unique_ptr<Expression> right);
         bool is_current(TokenType type);
         std::unique_ptr<Expression> parse_expression();

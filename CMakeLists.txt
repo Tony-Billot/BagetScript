@@ -19,6 +19,7 @@ set(SOURCES
     src/lexer/lexer.cpp
     src/parser/parser.cpp
     src/interpreter/interpreter.cpp
+    src/common/token.cpp
 )
 
 add_executable(bagetscript ${SOURCES})
@@ -30,6 +31,7 @@ add_executable(bagetscript_tests
     src/lexer/lexer.cpp
     src/parser/parser.cpp
     src/interpreter/interpreter.cpp
+    src/common/token.cpp
 )
 
 target_include_directories(bagetscript_tests PRIVATE include)
