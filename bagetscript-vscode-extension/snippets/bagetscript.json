@@ -1,0 +1,54 @@
+{
+  "Afficher": {
+    "prefix": "afficher",
+    "body": ["afficher($1);"]
+  },
+  "Déclarer un nombre": {
+    "prefix": "nombre",
+    "body": ["nombre ${1:nom} = ${2:0};"]
+  },
+  "Déclarer un texte": {
+    "prefix": "texte",
+    "body": ["texte ${1:nom} = \"${2}\";"]
+  },
+  "Déclarer un booléen": {
+    "prefix": ["booléen", "booleen"],
+    "body": ["booléen ${1:nom} = ${2:vrai};"]
+  },
+  "Condition si": {
+    "prefix": "si",
+    "body": [
+      "si (${1:condition}) {",
+      "\t$0",
+      "}"
+    ]
+  },
+  "Condition sinon si": {
+    "prefix": ["sinon", "sinonsi"],
+    "body": [
+      "sinon si (${1:condition}) {",
+      "\t$0",
+      "}"
+    ]
+  },
+  "Condition sinon": {
+    "prefix": "sinon",
+    "body": [
+      "sinon {",
+      "\t$0",
+      "}"
+    ]
+  },
+  "Fonction": {
+    "prefix": "fonction",
+    "body": [
+      "fonction ${1:nom}(${2}) {",
+      "\t$0",
+      "}"
+    ]
+  },
+  "Retourner": {
+    "prefix": "retourner",
+    "body": ["retourner $1;"]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "scopeName": "source.bagetscript",
+  "patterns": [
+    { "name": "string.quoted.double.bagetscript", "begin": "\"", "end": "\"" },
+    { "name": "constant.numeric.bagetscript", "match": "\\b\\d+(\\.\\d+)?\\b" },
+    {
+      "match": "\\b(fonction)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+      "captures": {
+        "1": { "name": "storage.type.function.bagetscript" },
+        "2": { "name": "entity.name.function.bagetscript" }
+      }
+    },
+    {
+      "match": "\\b(nombre|texte|booléen)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+      "captures": {
+        "1": { "name": "storage.type.bagetscript" },
+        "2": { "name": "variable.other.definition.bagetscript" }
+      }
+    },
+    { "name": "keyword.control.bagetscript", "match": "\\b(si|sinon|retourner)\\b" },
+    { "name": "constant.language.bagetscript", "match": "\\b(vrai|faux)\\b" },
+    { "name": "keyword.operator.logical.bagetscript", "match": "\\b(et|ou|non)\\b" },
+    { "name": "support.function.bagetscript", "match": "\\b(afficher)\\b" },
+    {
+      "match": "([\\p{L}_][\\p{L}\\p{N}_]*)\\s*(?=\\()",
+      "captures": {
+        "1": { "name": "entity.name.function.bagetscript" }
+      }
+    },
+    { "name": "keyword.operator.bagetscript", "match": "==|[+\\-*/=<>]" }
+  ]
+}

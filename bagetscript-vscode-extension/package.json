@@ -1,0 +1,30 @@
+{
+  "name": "bagetscript",
+  "displayName": "BagetScript",
+  "description": "Support du langage BagetScript (.bgt)",
+  "version": "0.0.1",
+  "publisher": "tony-billot",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Tony-Billot/BagetScript"
+  },
+  "engines": { "vscode": "^1.80.0" },
+  "categories": ["Programming Languages"],
+  "contributes": {
+    "languages": [{
+      "id": "bagetscript",
+      "aliases": ["BagetScript"],
+      "extensions": [".bgt"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "bagetscript",
+      "scopeName": "source.bagetscript",
+      "path": "./syntaxes/bagetscript.tmLanguage.json"
+    }],
+    "snippets": [{
+      "language": "bagetscript",
+      "path": "./snippets/bagetscript.json"
+    }]
+  }
+}
