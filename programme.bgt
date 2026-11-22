@@ -11,3 +11,4 @@ fonction signe(nombre a) {
 }
 
 nombre a = signe(1) + 1;
+afficher(a);

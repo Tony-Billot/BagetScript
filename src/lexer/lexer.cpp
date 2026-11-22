@@ -1,5 +1,4 @@
 #include "lexer/lexer.hpp"
-#include <iostream>
 #include <cctype>
 #include <map>
 #include "common/exceptions.hpp"
@@ -217,7 +216,6 @@ std::string Lexer::token_type_to_string(TokenType type)
         case TokenType::AFFICHER: return "AFFICHER";
         case TokenType::SI: return "SI";
         case TokenType::SINON: return "SINON";
-        case TokenType::SINON_SI: return "SINON_SI";
         case TokenType::EST_EGAL_A: return "EST_EGAL_A";
         case TokenType::EST_INFERIEUR_A: return "EST_INFERIEUR_A";
         case TokenType::EST_SUPERIEUR_A: return "EST_SUPERIEUR_A";

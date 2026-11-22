@@ -4,7 +4,6 @@
 #include "ast/expressions/text_expression.hpp"
 #include "ast/expressions/boolean_expression.hpp"
 #include "common/exceptions.hpp"
-#include <iostream>
 #include <memory>
 #include "ast/expressions/binary_expression.hpp"
 #include "ast/expressions/unary_expression.hpp"

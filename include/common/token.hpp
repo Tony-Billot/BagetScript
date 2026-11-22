@@ -35,7 +35,6 @@ enum class TokenType {
     // Instructions conditionnelles
     SI,
     SINON,
-    SINON_SI,
 
     // Instructions d'affichage
     AFFICHER,
