@@ -7,9 +7,6 @@
 #include <memory>
 #include "ast/expressions/binary_expression.hpp"
 #include "ast/expressions/unary_expression.hpp"
-#include "ast/statements/function.hpp"
-#include "ast/expressions/function_call_expression.hpp"
-
 
 Parser::Parser(std::vector<Token> tokens)
 {
@@ -40,16 +37,6 @@ Token Parser::consume(TokenType expected)
 Declaration Parser::parse_declaration()
 {
     Declaration declaration;
-
-    if (current_token().type != TokenType::TYPE_NOMBRE && current_token().type != TokenType::TYPE_TEXTE && current_token().type != TokenType::TYPE_BOOLEEN)
-    {
-        if (current_token().type == TokenType::IDENTIFIANT)
-        {
-            throw SyntaxError("type '" + current_token().valeur + "' non reconnu", current_token().line, current_token().column);
-        }
-        throw SyntaxError("type nombre, texte ou booléen attendu", current_token().line, current_token().column);
-    }
-
     declaration.type = consume(current_token().type).type;
     declaration.name = consume(TokenType::IDENTIFIANT).valeur;
     consume(TokenType::A_POUR_VALEUR);
