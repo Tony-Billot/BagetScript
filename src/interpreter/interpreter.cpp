@@ -28,50 +28,26 @@ bool is_of_type(const Interpreter::Value& value, TokenType type)
     }
 }
 
+static bool is_true(const Interpreter::Value& value)
+{
+    return std::holds_alternative<bool>(value) && std::get<bool>(value);
+}
+
 void Interpreter::execute(std::unique_ptr<Statement> statement)
 {
-    if (const auto* declaration = dynamic_cast<const Declaration*>(statement.get()))
-    {
-        execute(*declaration);
-        return;
-    }
-
-    if (const auto* print = dynamic_cast<const PrintStatement*>(statement.get()))
-    {
-        execute(*print);
-        return;
-    }
-
-    if (const auto* assignment = dynamic_cast<const Assignment*>(statement.get()))
-    {
-        execute(*assignment);
-        return;
-    }
-
-    if (const auto* conditional = dynamic_cast<const IfStatement*>(statement.get()))
-    {
-        execute(*conditional);
-        return;
-    }
-
     if (dynamic_cast<const FunctionStatement*>(statement.get()))
     {
         execute(std::unique_ptr<FunctionStatement>(static_cast<FunctionStatement*>(statement.release())));
         return;
     }
 
-    if (const auto* call = dynamic_cast<const FunctionCallStatement*>(statement.get()))
-    {
-        execute(*call->call);
-        return;
-    }
 
     if (const auto* return_statement = dynamic_cast<const ReturnStatement*>(statement.get()))
     {
         throw RuntimeError("instruction 'retourner' hors d'une fonction", return_statement->value->line, return_statement->value->column);
     }
 
-    throw RuntimeError("instruction inconnue", 1, 1);
+    (void)execute_statement(*statement);
 }
 
 Interpreter::Value Interpreter::evaluate(const Expression& expression)
@@ -252,87 +228,61 @@ void Interpreter::execute(const Assignment& assignment)
     variable->second = value;
 }
 
-std::optional<Interpreter::Value> Interpreter::execute_block(
-    const std::vector<std::unique_ptr<Statement>>& statements)
+std::optional<Interpreter::Value> Interpreter::execute_statement(const Statement& statement)
 {
-    for (const auto& item : statements)
+    if (const auto* declaration = dynamic_cast<const Declaration*>(&statement))
     {
-        if (const auto* declaration = dynamic_cast<const Declaration*>(item.get()))
-        {
-            execute(*declaration);
-        }
-        else if (const auto* print = dynamic_cast<const PrintStatement*>(item.get()))
-        {
-            execute(*print);
-        }
-        else if (const auto* assignment = dynamic_cast<const Assignment*>(item.get()))
-        {
-            execute(*assignment);
-        }
-        else if (const auto* conditional = dynamic_cast<const IfStatement*>(item.get()))
-        {
-            Value condition = evaluate(*conditional->condition);
-            std::optional<Value> returned;
-
-            if (std::holds_alternative<bool>(condition) && std::get<bool>(condition))
-            {
-                returned = execute_block(conditional->statements);
-            }
-            else
-            {
-                bool branch_matched = false;
-                for (const ElseIfBranch& branch : conditional->else_if_branches)
-                {
-                    Value branch_condition = evaluate(*branch.condition);
-                    if (std::holds_alternative<bool>(branch_condition)
-                        && std::get<bool>(branch_condition))
-                    {
-                        branch_matched = true;
-                        returned = execute_block(branch.statements);
-                        break;
-                    }
-                }
-
-                if (!branch_matched)
-                    returned = execute_block(conditional->else_statements);
-            }
-
-            if (returned)
-                return returned;
-        }
-        else if (const auto* return_statement = dynamic_cast<const ReturnStatement*>(item.get()))
-        {
-            return evaluate(*return_statement->value);
-        }
-        else if (const auto* call = dynamic_cast<const FunctionCallStatement*>(item.get()))
-        {
-            (void)execute_function(*call->call);
-        }
+        execute(*declaration);
+        return std::nullopt;
     }
-
-    return std::nullopt;
+    if (const auto* print = dynamic_cast<const PrintStatement*>(&statement))
+    {
+        execute(*print);
+        return std::nullopt;
+    }
+    if (const auto* assignment = dynamic_cast<const Assignment*>(&statement))
+    {
+        execute(*assignment);
+        return std::nullopt;
+    }
+    if (const auto* conditional = dynamic_cast<const IfStatement*>(&statement))
+    {
+        if (is_true(evaluate(*conditional->condition)))
+        {
+            return execute_block(conditional->statements);
+        }
+        for (const ElseIfBranch& branch : conditional->else_if_branches)
+        {
+            if (is_true(evaluate(*branch.condition)))
+            {
+                return execute_block(branch.statements);
+            }
+        }
+        return execute_block(conditional->else_statements);
+    }
+    if (const auto* return_statement = dynamic_cast<const ReturnStatement*>(&statement))
+    {
+        return evaluate(*return_statement->value);
+    }
+    if (const auto* call = dynamic_cast<const FunctionCallStatement*>(&statement))
+    {
+        (void)execute_function(*call->call);
+        return std::nullopt;
+    }
+    throw RuntimeError("instruction inconnue", 1, 1);
 }
 
-void Interpreter::execute(const IfStatement& statement)
+std::optional<Interpreter::Value> Interpreter::execute_block(const std::vector<std::unique_ptr<Statement>>& statements)
 {
-    Value condition = evaluate(*statement.condition);
-    if (std::holds_alternative<bool>(condition) && std::get<bool>(condition))
+    for (const auto& statement : statements)
     {
-        (void)execute_block(statement.statements);
-        return;
-    }
-
-    for (const ElseIfBranch& branch : statement.else_if_branches)
-    {
-        Value branch_condition = evaluate(*branch.condition);
-        if (std::holds_alternative<bool>(branch_condition) && std::get<bool>(branch_condition))
+        std::optional<Value> returned = execute_statement(*statement);
+        if (returned.has_value())
         {
-            (void)execute_block(branch.statements);
-            return;
+            return returned;
         }
     }
-
-    (void)execute_block(statement.else_statements);
+    return std::nullopt;
 }
 
 void Interpreter::execute(std::unique_ptr<FunctionStatement> statement)
@@ -381,11 +331,6 @@ Interpreter::Value Interpreter::execute_function(const FunctionCallExpression& c
     variables = saved_variables;
 
     return returned.value_or(Value(21.0));
-}
-
-void Interpreter::execute(const FunctionCallExpression& call)
-{
-    (void)execute_function(call);
 }
 
 void Interpreter::execute(const PrintStatement& statement)
