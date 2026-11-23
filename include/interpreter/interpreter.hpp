@@ -17,6 +17,8 @@
 class Interpreter
 {
     public:
+        using Value = std::variant<double, std::string, bool>;
+
         void execute(std::unique_ptr<Statement> statement);
         void execute(const Declaration& declaration);
         void execute(const PrintStatement& statement);
@@ -26,7 +28,6 @@ class Interpreter
         void execute(const FunctionCallExpression& statement);
 
     private:
-        using Value = std::variant<double, std::string, bool>;
         std::unordered_map<std::string, Value> variables;
         std::unordered_map<std::string, std::unique_ptr<FunctionStatement>> functions;
 

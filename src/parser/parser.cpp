@@ -222,9 +222,7 @@ std::unique_ptr<Expression> Parser::parse_equality()
 {
     auto result = parse_addition();
 
-    while (is_current(TokenType::EST_EGAL_A)
-        || is_current(TokenType::EST_INFERIEUR_A)
-        || is_current(TokenType::EST_SUPERIEUR_A))
+    while (is_current(TokenType::EST_EGAL_A)|| is_current(TokenType::EST_INFERIEUR_A) || is_current(TokenType::EST_SUPERIEUR_A))
     {
         Token operator_token = consume(current_token().type);
         auto right_side = parse_addition();

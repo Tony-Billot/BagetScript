@@ -13,6 +13,21 @@
 #include "ast/expressions/function_call_expression.hpp"
 #include <algorithm>
 
+bool is_of_type(const Interpreter::Value& value, TokenType type)
+{
+    switch (type)
+    {
+        case TokenType::TYPE_NOMBRE:
+            return std::holds_alternative<double>(value);
+        case TokenType::TYPE_TEXTE:
+            return std::holds_alternative<std::string>(value);
+        case TokenType::TYPE_BOOLEEN:
+            return std::holds_alternative<bool>(value);
+        default:
+            return false;
+    }
+}
+
 void Interpreter::execute(std::unique_ptr<Statement> statement)
 {
     if (const auto* declaration = dynamic_cast<const Declaration*>(statement.get()))
@@ -41,8 +56,7 @@ void Interpreter::execute(std::unique_ptr<Statement> statement)
 
     if (dynamic_cast<const FunctionStatement*>(statement.get()))
     {
-        execute(std::unique_ptr<FunctionStatement>(
-            static_cast<FunctionStatement*>(statement.release())));
+        execute(std::unique_ptr<FunctionStatement>(static_cast<FunctionStatement*>(statement.release())));
         return;
     }
 
@@ -54,10 +68,7 @@ void Interpreter::execute(std::unique_ptr<Statement> statement)
 
     if (const auto* return_statement = dynamic_cast<const ReturnStatement*>(statement.get()))
     {
-        throw RuntimeError(
-            "instruction 'retourner' hors d'une fonction",
-            return_statement->value->line,
-            return_statement->value->column);
+        throw RuntimeError("instruction 'retourner' hors d'une fonction", return_statement->value->line, return_statement->value->column);
     }
 
     throw RuntimeError("instruction inconnue", 1, 1);
@@ -100,11 +111,7 @@ Interpreter::Value Interpreter::evaluate(const Expression& expression)
         {
             if (!std::holds_alternative<bool>(value))
             {
-                throw RuntimeError(
-                    "l'opérateur 'non' attend un booléen",
-                    unary->line,
-                    unary->column
-                );
+                throw RuntimeError("l'opérateur 'non' attend un booléen", unary->line, unary->column);
             }
 
             return !std::get<bool>(value);
@@ -220,9 +227,8 @@ static std::string format_number(double value)
 void Interpreter::execute(const Declaration& declaration)
 {
     Value value = evaluate(*declaration.value);
-    bool compatible = (declaration.type == TokenType::TYPE_NOMBRE && std::holds_alternative<double>(value)) || (declaration.type == TokenType::TYPE_TEXTE && std::holds_alternative<std::string>(value)) || (declaration.type == TokenType::TYPE_BOOLEEN && std::holds_alternative<bool>(value));
 
-    if (!compatible)
+    if (!is_of_type(value, declaration.type))
     {
         throw RuntimeError("type de valeur incompatible pour la déclaration de '" + declaration.name + "'", declaration.value->line, declaration.value->column);
     }
@@ -363,17 +369,9 @@ Interpreter::Value Interpreter::execute_function(const FunctionCallExpression& c
         Value argument = evaluate(*call.arguments[index]);
         const Parameter& parameter = function->second->parameters[index];
 
-        bool compatible =
-            (parameter.type == TokenType::TYPE_NOMBRE && std::holds_alternative<double>(argument))
-            || (parameter.type == TokenType::TYPE_TEXTE && std::holds_alternative<std::string>(argument))
-            || (parameter.type == TokenType::TYPE_BOOLEEN && std::holds_alternative<bool>(argument));
-
-        if (!compatible)
+        if (!is_of_type(argument, parameter.type))
         {
-            throw RuntimeError(
-                "type d'argument incompatible pour '" + parameter.name + "'",
-                call.line,
-                call.column);
+            throw RuntimeError("type d'argument incompatible pour '" + parameter.name + "'", call.line, call.column);
         }
 
         variables[parameter.name] = argument;
