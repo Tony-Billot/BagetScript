@@ -313,6 +313,7 @@ Interpreter::Value Interpreter::execute_function(const FunctionCallExpression& c
     }
 
     auto saved_variables = variables;
+    auto scope = variables;
 
     for (size_t index = 0; index < call.arguments.size(); ++index)
     {
@@ -324,8 +325,10 @@ Interpreter::Value Interpreter::execute_function(const FunctionCallExpression& c
             throw RuntimeError("type d'argument incompatible pour '" + parameter.name + "'", call.line, call.column);
         }
 
-        variables[parameter.name] = argument;
+        scope[parameter.name] = argument;
     }
+
+    variables = std::move(scope);
 
     std::optional<Value> returned = execute_block(function->second->statements);
     variables = saved_variables;

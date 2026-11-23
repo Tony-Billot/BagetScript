@@ -112,6 +112,7 @@ const std::vector<OutputTest> output_tests = {
     {"fonction avec parametres", "fonction a(nombre a, texte b) { afficher(a); afficher(b); } a(2, \"3\");", "2\n3\n"},
     {"retour de fonction", "fonction b() { retourner \"OK\"; } afficher(b());", "OK\n"},
     {"evaluation unique dans declaration", "fonction signe(nombre a) { si (a > 0) { afficher(\"Le nombre est positif\"); } sinon si (a < 0) { afficher(\"Le nombre est negatif\"); } sinon { afficher(\"Le nombre est egal a 0 !\"); } } nombre a = signe(1) + 1;", "Le nombre est positif\n"},
+    {"pgcd recursif avec permutation des arguments", "fonction pgcd(nombre a, nombre b) { si (b == 0) { retourner a; } si (a < b) { retourner pgcd(b, a); } retourner pgcd(b, a - b); } afficher(pgcd(12, 18));", "6\n"},
 };
 
 void run_output_tests()
